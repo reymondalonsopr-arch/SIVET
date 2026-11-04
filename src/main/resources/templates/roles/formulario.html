@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Registrar rol')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Registrar rol')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado del formulario. -->
+            <div class="mb-4">
+
+                <h3 class="fw-bold mb-1">
+                    Registrar nuevo rol
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Define un nuevo tipo de acceso para SIVET.
+                </p>
+
+            </div>
+
+            <!-- Panel del formulario. -->
+            <div class="sivet-card">
+
+                <!-- Mensaje de error enviado por el controlador. -->
+                <div th:if="${error}"
+                     class="alert alert-danger alert-dismissible fade show"
+                     role="alert">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    <span th:text="${error}"></span>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Cerrar">
+                    </button>
+
+                </div>
+
+                <!-- Formulario para registrar un rol. -->
+                <form th:action="@{/roles/guardar}"
+                      th:object="${rol}"
+                      method="post">
+
+                    <div class="row g-3">
+
+                        <!-- Nombre del rol. -->
+                        <div class="col-12">
+
+                            <label for="nombre"
+                                   class="form-label fw-semibold">
+                                Nombre del rol *
+                            </label>
+
+                            <input type="text"
+                                   id="nombre"
+                                   th:field="*{nombre}"
+                                   class="form-control"
+                                   placeholder="Ejemplo: SUPERVISOR"
+                                   minlength="3"
+                                   maxlength="50"
+                                   required>
+
+                            <small class="text-muted">
+                                Escribe un nombre de entre 3 y 50 caracteres.
+                            </small>
+
+                        </div>
+
+                        <!-- Descripción del rol. -->
+                        <div class="col-12">
+
+                            <label for="descripcion"
+                                   class="form-label fw-semibold">
+                                Descripción
+                            </label>
+
+                            <textarea id="descripcion"
+                                      th:field="*{descripcion}"
+                                      class="form-control"
+                                      rows="4"
+                                      minlength="5"
+                                      maxlength="150"
+                                      placeholder="Describe las funciones de este rol">
+                            </textarea>
+
+                            <small class="text-muted">
+                                Explica brevemente qué permisos tendrá este rol.
+                                Máximo 150 caracteres.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Separador visual. -->
+                    <hr class="my-4">
+
+                    <!-- Acciones del formulario. -->
+                    <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                        <a th:href="@{/roles}"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Cancelar
+
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-save me-1"></i>
+                            Guardar rol
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

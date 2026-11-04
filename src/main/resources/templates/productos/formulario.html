@@ -1,0 +1,244 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Formulario de productos')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Formulario de productos')}"></header>
+
+        <section class="page-content">
+
+            <!-- Título dinámico según la operación. -->
+            <div class="mb-4">
+
+                <h3 class="fw-bold mb-1"
+                    th:text="${producto.id == null ? 'Registrar producto' : 'Editar producto'}">
+                    Registrar producto
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Completa los datos comerciales del producto.
+                </p>
+
+            </div>
+
+            <!-- Panel del formulario. -->
+            <div class="sivet-card">
+
+                <!-- Mensaje de error del servidor. -->
+                <div th:if="${mensajeError}"
+                     class="alert alert-danger alert-dismissible fade show"
+                     role="alert">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    <span th:text="${mensajeError}"></span>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Cerrar">
+                    </button>
+
+                </div>
+
+                <!-- Formulario de registro o actualización. -->
+                <form th:action="${producto.id == null}
+                              ? @{/productos/guardar}
+                              : @{/productos/actualizar/{id}(id=${producto.id})}"
+                      th:object="${producto}"
+                      method="post">
+
+                    <div class="row g-3">
+
+                        <!-- Código del producto. -->
+                        <div class="col-md-6">
+
+                            <label for="codigo" class="form-label fw-semibold">
+                                Código *
+                            </label>
+
+                            <input type="text"
+                                   id="codigo"
+                                   th:field="*{codigo}"
+                                   class="form-control"
+                                   placeholder="Ejemplo: PROD-001"
+                                   minlength="2"
+                                   maxlength="30"
+                                   required>
+
+                            <small class="text-muted">
+                                Código único para identificar el producto.
+                            </small>
+
+                        </div>
+
+                        <!-- Nombre del producto. -->
+                        <div class="col-md-6">
+
+                            <label for="nombre" class="form-label fw-semibold">
+                                Nombre del producto *
+                            </label>
+
+                            <input type="text"
+                                   id="nombre"
+                                   th:field="*{nombre}"
+                                   class="form-control"
+                                   placeholder="Ingrese el nombre del producto"
+                                   minlength="2"
+                                   maxlength="100"
+                                   required>
+
+                        </div>
+
+                        <!-- Categoría del producto. -->
+                        <div class="col-md-6">
+
+                            <label for="categoria" class="form-label fw-semibold">
+                                Categoría *
+                            </label>
+
+                            <select id="categoria"
+                                    th:field="*{categoria.id}"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+                                    Seleccione una categoría
+                                </option>
+
+                                <!-- Mostramos las categorías enviadas por el controlador. -->
+                                <option th:each="categoria : ${categorias}"
+                                        th:value="${categoria.id}"
+                                        th:text="${categoria.nombre}">
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- Precio de compra. -->
+                        <div class="col-md-6">
+
+                            <label for="precioCompra" class="form-label fw-semibold">
+                                Precio de compra (S/) *
+                            </label>
+
+                            <input type="number"
+                                   id="precioCompra"
+                                   th:field="*{precioCompra}"
+                                   class="form-control"
+                                   placeholder="0.00"
+                                   min="0"
+                                   step="0.01"
+                                   required>
+
+                        </div>
+
+                        <!-- Precio de venta. -->
+                        <div class="col-md-6">
+
+                            <label for="precioVenta" class="form-label fw-semibold">
+                                Precio de venta (S/) *
+                            </label>
+
+                            <input type="number"
+                                   id="precioVenta"
+                                   th:field="*{precioVenta}"
+                                   class="form-control"
+                                   placeholder="0.00"
+                                   min="0"
+                                   step="0.01"
+                                   required>
+
+                        </div>
+
+                        <!-- Stock mínimo. -->
+                        <div class="col-md-6">
+
+                            <label for="stockMinimo" class="form-label fw-semibold">
+                                Stock mínimo *
+                            </label>
+
+                            <input type="number"
+                                   id="stockMinimo"
+                                   th:field="*{stockMinimo}"
+                                   class="form-control"
+                                   min="0"
+                                   step="1"
+                                   required>
+
+                            <small class="text-muted">
+                                Cantidad mínima antes de generar una alerta.
+                            </small>
+
+                        </div>
+
+                        <!-- Información sobre el inventario. -->
+                        <div class="col-12">
+
+                            <div class="alert alert-info mb-0">
+
+                                <i class="bi bi-info-circle me-2"></i>
+
+                                <strong>Control de existencias:</strong>
+
+                                El stock inicial será cero. Las existencias
+                                se actualizarán posteriormente mediante
+                                compras y movimientos de inventario.
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Separador visual. -->
+                    <hr class="my-4">
+
+                    <!-- Acciones del formulario. -->
+                    <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                        <a th:href="@{/productos}"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Cancelar
+
+                        </a>
+
+                        <button type="submit" class="btn btn-primary">
+
+                            <i class="bi bi-save me-1"></i>
+
+                            <span th:text="${producto.id == null ? 'Registrar producto' : 'Guardar cambios'}">
+                                Guardar producto
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

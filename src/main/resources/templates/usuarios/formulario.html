@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Formulario de usuario')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Formulario de usuario')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado dinámico para registro y edición. -->
+            <div class="mb-4">
+
+                <h3 class="fw-bold mb-1"
+                    th:text="${usuario.id == null ? 'Registrar usuario' : 'Editar usuario'}">
+                    Registrar usuario
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Completa la información de la cuenta y sus permisos.
+                </p>
+
+            </div>
+
+            <!-- Mensaje de error enviado por el controlador. -->
+            <div th:if="${error}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                <span th:text="${error}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Panel principal del formulario. -->
+            <div class="sivet-card">
+
+                <!-- La acción cambia según sea registro o edición. -->
+                <form th:action="${usuario.id == null}
+                                 ? @{/usuarios/nuevo}
+                                 : @{/usuarios/editar/{id}(id=${usuario.id})}"
+                      th:object="${usuario}"
+                      method="post">
+
+                    <!-- Identificador necesario para actualizar un usuario. -->
+                    <input type="hidden" th:field="*{id}">
+
+                    <div class="row g-3">
+
+                        <!-- Nombre completo. -->
+                        <div class="col-12">
+
+                            <label for="nombreCompleto"
+                                   class="form-label fw-semibold">
+                                Nombre completo *
+                            </label>
+
+                            <input type="text"
+                                   id="nombreCompleto"
+                                   th:field="*{nombreCompleto}"
+                                   class="form-control"
+                                   placeholder="Ejemplo: Juan Pérez García"
+                                   minlength="2"
+                                   maxlength="120"
+                                   autocomplete="name"
+                                   required>
+
+                            <small class="text-muted">
+                                Ingresa los nombres y apellidos del usuario.
+                            </small>
+
+                        </div>
+
+                        <!-- Nombre de usuario. -->
+                        <div class="col-md-6">
+
+                            <label for="nombreUsuario"
+                                   class="form-label fw-semibold">
+                                Nombre de usuario *
+                            </label>
+
+                            <input type="text"
+                                   id="nombreUsuario"
+                                   th:field="*{nombreUsuario}"
+                                   class="form-control"
+                                   placeholder="Ejemplo: jperez"
+                                   minlength="3"
+                                   maxlength="50"
+                                   autocomplete="username"
+                                   required>
+
+                            <small class="text-muted">
+                                Se utilizará para iniciar sesión.
+                            </small>
+
+                        </div>
+
+                        <!-- Contraseña. -->
+                        <div class="col-md-6">
+
+                            <label for="password"
+                                   class="form-label fw-semibold">
+                                Contraseña
+                                <span th:if="${usuario.id == null}">*</span>
+                            </label>
+
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   class="form-control"
+                                   placeholder="Ingrese una contraseña"
+                                   minlength="6"
+                                   maxlength="100"
+                                   autocomplete="new-password"
+                                   th:required="${usuario.id == null}">
+
+                            <small class="text-muted"
+                                   th:if="${usuario.id == null}">
+                                Obligatoria para registrar una cuenta. Mínimo 6 caracteres.
+                            </small>
+
+                            <small class="text-muted"
+                                   th:unless="${usuario.id == null}">
+                                Deja este campo vacío si no deseas cambiarla.
+                            </small>
+
+                        </div>
+
+                        <!-- Selección del rol. -->
+                        <div class="col-md-6">
+
+                            <label for="rolId"
+                                   class="form-label fw-semibold">
+                                Rol del usuario *
+                            </label>
+
+                            <select id="rolId"
+                                    name="rolId"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+                                    Selecciona un rol
+                                </option>
+
+                                <!-- Cargamos los roles disponibles. -->
+                                <option th:each="rol : ${roles}"
+                                        th:value="${rol.id}"
+                                        th:text="${rol.nombre}"
+                                        th:selected="${usuario.rol != null and usuario.rol.id == rol.id}">
+                                    ADMIN
+                                </option>
+
+                            </select>
+
+                            <small class="text-muted">
+                                El rol determina los permisos de acceso.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Separador del formulario. -->
+                    <hr class="my-4">
+
+                    <!-- Botones de acción. -->
+                    <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                        <a th:href="@{/usuarios}"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Cancelar
+
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-save me-1"></i>
+
+                            <span th:text="${usuario.id == null
+                                            ? 'Registrar usuario'
+                                            : 'Guardar cambios'}">
+                                Registrar usuario
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

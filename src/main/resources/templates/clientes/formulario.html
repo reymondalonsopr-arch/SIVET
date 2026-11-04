@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Formulario de clientes')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Formulario de clientes')}"></header>
+
+        <section class="page-content">
+
+            <!-- Título dinámico según la operación. -->
+            <div class="mb-4">
+
+                <h3 class="fw-bold mb-1"
+                    th:text="${cliente.id == null ? 'Registrar cliente' : 'Editar cliente'}">
+                    Registrar cliente
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Completa los datos del cliente.
+                </p>
+
+            </div>
+
+            <!-- Panel del formulario. -->
+            <div class="sivet-card">
+
+                <!-- Mensaje de error enviado por el controlador. -->
+                <div th:if="${mensajeError}"
+                     class="alert alert-danger alert-dismissible fade show"
+                     role="alert">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    <span th:text="${mensajeError}"></span>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Cerrar">
+                    </button>
+
+                </div>
+
+                <!-- Formulario de registro o actualización. -->
+                <form th:action="${cliente.id == null}
+                              ? @{/clientes/guardar}
+                              : @{/clientes/actualizar/{id}(id=${cliente.id})}"
+                      th:object="${cliente}"
+                      method="post">
+
+                    <div class="row g-3">
+
+                        <!-- Nombre completo. -->
+                        <div class="col-md-6">
+
+                            <label for="nombre" class="form-label fw-semibold">
+                                Nombre completo *
+                            </label>
+
+                            <input type="text"
+                                   id="nombre"
+                                   th:field="*{nombre}"
+                                   class="form-control"
+                                   placeholder="Ingrese el nombre completo"
+                                   minlength="2"
+                                   maxlength="120"
+                                   autocomplete="name"
+                                   required>
+
+                        </div>
+
+                        <!-- Número de documento. -->
+                        <div class="col-md-6">
+
+                            <label for="numeroDocumento" class="form-label fw-semibold">
+                                Número de documento
+                            </label>
+
+                            <input type="text"
+                                   id="numeroDocumento"
+                                   th:field="*{numeroDocumento}"
+                                   class="form-control"
+                                   placeholder="Ingrese el documento"
+                                   maxlength="20"
+                                   autocomplete="off">
+
+                        </div>
+
+                        <!-- Teléfono. -->
+                        <div class="col-md-6">
+
+                            <label for="telefono" class="form-label fw-semibold">
+                                Teléfono
+                            </label>
+
+                            <input type="tel"
+                                   id="telefono"
+                                   th:field="*{telefono}"
+                                   class="form-control"
+                                   placeholder="Ingrese el teléfono"
+                                   maxlength="20"
+                                   autocomplete="tel">
+
+                        </div>
+
+                        <!-- Correo electrónico. -->
+                        <div class="col-md-6">
+
+                            <label for="correo" class="form-label fw-semibold">
+                                Correo electrónico
+                            </label>
+
+                            <input type="email"
+                                   id="correo"
+                                   th:field="*{correo}"
+                                   class="form-control"
+                                   placeholder="ejemplo@correo.com"
+                                   maxlength="120"
+                                   autocomplete="email">
+
+                        </div>
+
+                        <!-- Dirección. -->
+                        <div class="col-12">
+
+                            <label for="direccion" class="form-label fw-semibold">
+                                Dirección
+                            </label>
+
+                            <textarea id="direccion"
+                                      th:field="*{direccion}"
+                                      class="form-control"
+                                      rows="3"
+                                      maxlength="200"
+                                      placeholder="Ingrese la dirección">
+                            </textarea>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Separador visual. -->
+                    <hr class="my-4">
+
+                    <!-- Acciones del formulario. -->
+                    <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                        <a th:href="@{/clientes}"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Cancelar
+
+                        </a>
+
+                        <button type="submit" class="btn btn-primary">
+
+                            <i class="bi bi-save me-1"></i>
+
+                            <span th:text="${cliente.id == null ? 'Registrar cliente' : 'Guardar cambios'}">
+                                Guardar cliente
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

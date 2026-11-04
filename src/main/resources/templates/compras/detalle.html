@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Detalle de compra')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Detalle de compra')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado y botón para regresar. -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Detalle de compra</h3>
+
+                    <p class="text-muted mb-0">
+                        Consulta los productos y los importes de la compra.
+                    </p>
+                </div>
+
+                <a th:href="@{/compras}"
+                   class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Volver a compras
+
+                </a>
+
+            </div>
+
+            <!-- Información general de la compra. -->
+            <div class="sivet-card mb-4">
+
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-receipt me-2"></i>
+                    Información general
+                </h5>
+
+                <div class="row g-3">
+
+                    <!-- Código de compra. -->
+                    <div class="col-12 col-md-4">
+
+                        <label class="text-muted small d-block">
+                            Código de compra
+                        </label>
+
+                        <p class="fw-semibold mb-0"
+                           th:text="${'COM-' + compra.id}">
+                        </p>
+
+                    </div>
+
+                    <!-- Proveedor. -->
+                    <div class="col-12 col-md-4">
+
+                        <label class="text-muted small d-block">
+                            Proveedor
+                        </label>
+
+                        <p class="fw-semibold mb-0"
+                           th:text="${compra.proveedor.nombre}">
+                        </p>
+
+                    </div>
+
+                    <!-- Fecha. -->
+                    <div class="col-12 col-md-4">
+
+                        <label class="text-muted small d-block">
+                            Fecha de compra
+                        </label>
+
+                        <p class="fw-semibold mb-0"
+                           th:text="${#temporals.format(compra.fecha, 'dd/MM/yyyy HH:mm')}">
+                        </p>
+
+                    </div>
+
+                    <!-- Estado. -->
+                    <div class="col-12 col-md-4">
+
+                        <label class="text-muted small d-block">
+                            Estado
+                        </label>
+
+                        <p class="mb-0">
+
+                            <span class="badge text-bg-success"
+                                  th:if="${compra.estado == 'REGISTRADA'}">
+                                Registrada
+                            </span>
+
+                            <span class="badge text-bg-secondary"
+                                  th:unless="${compra.estado == 'REGISTRADA'}"
+                                  th:text="${compra.estado}">
+                            </span>
+
+                        </p>
+
+                    </div>
+
+                    <!-- Observaciones. -->
+                    <div class="col-12 col-md-8">
+
+                        <label class="text-muted small d-block">
+                            Observaciones
+                        </label>
+
+                        <p class="mb-0"
+                           th:text="${compra.observacion != null && !compra.observacion.isBlank() ? compra.observacion : 'Sin observaciones'}">
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Productos incluidos en la compra. -->
+            <div class="sivet-card">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-box-seam me-2"></i>
+                        Productos adquiridos
+                    </h5>
+
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(detalles)} + ' productos'">
+                        0 productos
+                    </span>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio unitario</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorre los detalles de la compra. -->
+                            <tr th:each="detalle : ${detalles}">
+
+                                <td th:text="${detalle.producto.codigo}">
+                                    COD-001
+                                </td>
+
+                                <td class="fw-semibold"
+                                    th:text="${detalle.producto.nombre}">
+                                    Producto
+                                </td>
+
+                                <td class="text-center"
+                                    th:text="${detalle.cantidad}">
+                                    1
+                                </td>
+
+                                <td class="text-end text-nowrap"
+                                    th:text="${'S/ ' + #numbers.formatDecimal(detalle.precioUnitario, 1, 2)}">
+                                    S/ 0.00
+                                </td>
+
+                                <td class="text-end fw-semibold text-nowrap"
+                                    th:text="${'S/ ' + #numbers.formatDecimal(detalle.subtotal, 1, 2)}">
+                                    S/ 0.00
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen detalles. -->
+                            <tr th:if="${#lists.isEmpty(detalles)}">
+
+                                <td colspan="5" class="text-center py-5">
+
+                                    <i class="bi bi-inbox display-5 text-secondary"></i>
+
+                                    <p class="text-muted mt-3 mb-0">
+                                        No hay productos registrados en esta compra.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- Total general de la compra. -->
+                <div class="d-flex justify-content-end border-top mt-4 pt-4">
+
+                    <div class="text-end">
+
+                        <span class="text-muted d-block">
+                            Total de la compra
+                        </span>
+
+                        <h3 class="fw-bold text-primary mb-0"
+                            th:text="${'S/ ' + #numbers.formatDecimal(compra.total, 1, 2)}">
+                            S/ 0.00
+                        </h3>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

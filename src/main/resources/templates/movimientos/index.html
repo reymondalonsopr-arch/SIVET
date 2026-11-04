@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Movimientos de inventario')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Movimientos de inventario')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado y botón de registro. -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Movimientos de inventario</h3>
+                    <p class="text-muted mb-0">
+                        Historial de entradas, salidas y anulaciones de compras y ventas.
+                    </p>
+                </div>
+
+                <!-- Acceso al formulario de movimientos. -->
+                <a th:href="@{/movimientos/nuevo}"
+                   class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Nuevo movimiento
+                </a>
+
+            </div>
+
+            <!-- Mensaje personalizado de éxito. -->
+            <div th:if="${mensajeExito}"
+                 class="alert alert-success alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-check-circle me-2"></i>
+                <span th:text="${mensajeExito}">Movimiento registrado correctamente.</span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+            </div>
+
+            <!-- Mensaje de error. -->
+            <div th:if="${mensajeError}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <span th:text="${mensajeError}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+            </div>
+
+            <!-- Historial de movimientos. -->
+            <div class="sivet-card">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-arrow-left-right me-2"></i>
+                        Historial de movimientos
+                    </h5>
+
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(movimientos)} + ' movimientos'">
+                        0 movimientos
+                    </span>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Tipo</th>
+                                <th>Cantidad</th>
+                                <th>Origen / Motivo</th>
+                                <th>Compra</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorre todos los movimientos registrados. -->
+                            <tr th:each="movimiento : ${movimientos}">
+
+                                <!-- Identificador del movimiento. -->
+                                <td th:text="${movimiento.id}">1</td>
+
+                                <!-- Fecha del movimiento. -->
+                                <td class="text-nowrap"
+                                    th:text="${#temporals.format(movimiento.fecha, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2026 10:00
+                                </td>
+
+                                <!-- Producto relacionado. -->
+                                <td class="fw-semibold"
+                                    th:text="${movimiento.producto.nombre}">
+                                    Producto
+                                </td>
+
+                                <!-- Tipo de movimiento. -->
+                                <td>
+                                    <span th:if="${movimiento.tipo == 'ENTRADA'}"
+                                          class="badge text-bg-success">
+                                        <i class="bi bi-box-arrow-in-down me-1"></i>
+                                        Entrada
+                                    </span>
+
+                                    <span th:if="${movimiento.tipo == 'SALIDA'}"
+                                          class="badge text-bg-danger">
+                                        <i class="bi bi-box-arrow-up me-1"></i>
+                                        Salida
+                                    </span>
+                                </td>
+
+                                <!-- Cantidad registrada. -->
+                                <td class="fw-semibold"
+                                    th:text="${movimiento.cantidad}">
+                                    1
+                                </td>
+
+                                <!-- Motivo del movimiento y etiqueta de anulación. -->
+                                <td>
+                                    <span th:text="${movimiento.motivo}">Motivo</span>
+
+                                    <!-- Etiqueta naranja para anulaciones de compra. -->
+                                    <div th:if="${movimiento.compra != null
+                                                and movimiento.motivo != null
+                                                and #strings.containsIgnoreCase(movimiento.motivo, 'anulaci')}"
+                                         class="mt-1">
+                                        <span class="badge text-bg-warning">
+                                            Anulación de compra
+                                        </span>
+                                    </div>
+
+                                    <!-- Etiqueta naranja para anulaciones de venta. -->
+                                    <div th:if="${movimiento.compra == null
+                                                and movimiento.motivo != null
+                                                and #strings.containsIgnoreCase(movimiento.motivo, 'anulaci')
+                                                and #strings.containsIgnoreCase(movimiento.motivo, 'venta')}"
+                                         class="mt-1">
+                                        <span class="badge text-bg-warning">
+                                            Anulación de venta
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <!-- Compra asociada, si existe. -->
+                                <td>
+                                    <a th:if="${movimiento.compra != null}"
+                                       th:href="@{/compras}"
+                                       class="link-primary text-decoration-none"
+                                       th:text="'COM-' + ${movimiento.compra.id}">
+                                        COM-1
+                                    </a>
+
+                                    <span th:if="${movimiento.compra == null}"
+                                          class="text-muted">
+                                        Manual
+                                    </span>
+                                </td>
+
+                                <!-- Historial individual del producto. -->
+                                <td class="text-center">
+                                    <a th:href="@{/movimientos/producto/{id}(id=${movimiento.producto.id})}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Ver historial del producto">
+                                        <i class="bi bi-clock-history"></i>
+                                    </a>
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen movimientos. -->
+                            <tr th:if="${#lists.isEmpty(movimientos)}">
+                                <td colspan="8" class="text-center py-5">
+
+                                    <i class="bi bi-arrow-left-right display-5 text-secondary"></i>
+
+                                    <p class="fw-semibold mt-3 mb-1">
+                                        Todavía no hay movimientos registrados.
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Los movimientos aparecerán aquí cuando registres entradas o salidas.
+                                    </small>
+
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

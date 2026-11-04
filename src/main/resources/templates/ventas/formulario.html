@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Registrar venta')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Registrar venta')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado del formulario. -->
+            <div class="mb-4">
+                <h3 class="fw-bold mb-1">Registrar venta</h3>
+
+                <p class="text-muted mb-0">
+                    Selecciona el cliente y agrega los productos que deseas vender.
+                </p>
+            </div>
+
+            <!-- Mensaje de error enviado por el controlador. -->
+            <div th:if="${mensajeError}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span th:text="${mensajeError}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Formulario principal de venta. -->
+            <form th:action="@{/ventas/guardar}"
+                  th:object="${venta}"
+                  method="post"
+                  id="formularioVenta">
+
+                <div class="row g-4">
+
+                    <!-- Columna de información de la venta. -->
+                    <div class="col-12 col-lg-4">
+
+                        <div class="sivet-card h-100">
+
+                            <h5 class="fw-bold mb-3">
+                                <i class="bi bi-person me-2"></i>
+                                Datos de la venta
+                            </h5>
+
+                            <!-- Selección opcional del cliente. -->
+                            <div class="mb-3">
+
+                                <label for="clienteId" class="form-label">
+                                    Cliente
+                                </label>
+
+                                <select id="clienteId"
+                                        name="cliente.id"
+                                        class="form-select">
+
+                                    <option value="">
+                                        Cliente ocasional
+                                    </option>
+
+                                    <!-- Carga los clientes activos. -->
+                                    <option th:each="cliente : ${clientes}"
+                                            th:value="${cliente.id}"
+                                            th:text="${cliente.nombre}">
+                                    </option>
+
+                                </select>
+
+                                <small class="text-muted">
+                                    Puedes registrar la venta sin seleccionar un cliente.
+                                </small>
+
+                            </div>
+
+                            <!-- Observaciones opcionales. -->
+                            <div class="mb-3">
+
+                                <label for="observacion" class="form-label">
+                                    Observaciones
+                                </label>
+
+                                <textarea id="observacion"
+                                          th:field="*{observacion}"
+                                          class="form-control"
+                                          rows="4"
+                                          maxlength="250"
+                                          placeholder="Observaciones de la venta..."></textarea>
+
+                                <small class="text-muted">
+                                    Máximo 250 caracteres.
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Columna de productos. -->
+                    <div class="col-12 col-lg-8">
+
+                        <div class="sivet-card">
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-cart me-2"></i>
+                                    Productos de la venta
+                                </h5>
+
+                                <!-- Agrega una nueva fila de producto. -->
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm"
+                                        id="btnAgregarProducto">
+
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Agregar producto
+
+                                </button>
+
+                            </div>
+
+                            <!-- Contenedor de filas dinámicas. -->
+                            <div id="contenedorProductos"></div>
+
+                            <!-- Plantilla de una fila de producto. -->
+                            <template id="plantillaProducto">
+
+                                <div class="row g-2 align-items-end mb-3 fila-producto">
+
+                                    <!-- Selección del producto. -->
+                                    <div class="col-12 col-md-5">
+
+                                        <label class="form-label">
+                                            Producto *
+                                        </label>
+
+                                        <select name="productoIds"
+                                                class="form-select selector-producto"
+                                                required>
+
+                                            <option value="">
+                                                Seleccionar producto
+                                            </option>
+
+                                            <!-- Productos activos disponibles. -->
+                                            <option th:each="producto : ${productos}"
+                                                    th:value="${producto.id}"
+                                                    th:attr="data-precio=${producto.precioVenta}"
+                                                    th:text="${producto.codigo + ' - ' + producto.nombre}">
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <!-- Cantidad a vender. -->
+                                    <div class="col-6 col-md-2">
+
+                                        <label class="form-label">
+                                            Cantidad *
+                                        </label>
+
+                                        <input type="number"
+                                               name="cantidades"
+                                               class="form-control cantidad-producto"
+                                               min="1"
+                                               max="1000000"
+                                               step="1"
+                                               value="1"
+                                               required>
+
+                                    </div>
+
+                                    <!-- Precio unitario informativo. -->
+                                    <div class="col-6 col-md-2">
+
+                                        <label class="form-label">
+                                            Precio (S/)
+                                        </label>
+
+                                        <input type="text"
+                                               class="form-control precio-producto"
+                                               value="0.00"
+                                               readonly>
+
+                                    </div>
+
+                                    <!-- Subtotal calculado. -->
+                                    <div class="col-8 col-md-2">
+
+                                        <label class="form-label">
+                                            Subtotal (S/)
+                                        </label>
+
+                                        <input type="text"
+                                               class="form-control subtotal-producto"
+                                               value="0.00"
+                                               readonly>
+
+                                    </div>
+
+                                    <!-- Elimina la fila. -->
+                                    <div class="col-4 col-md-1">
+
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-eliminar w-100"
+                                                title="Eliminar producto"
+                                                aria-label="Eliminar producto">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </template>
+
+                            <!-- Resumen económico. -->
+                            <div class="border-top pt-3 mt-3">
+
+                                <div class="d-flex justify-content-between align-items-center">
+
+                                    <span class="fw-semibold">
+                                        Total de la venta
+                                    </span>
+
+                                    <h4 class="fw-bold text-primary mb-0">
+                                        S/ <span id="totalVenta">0.00</span>
+                                    </h4>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Botones del formulario. -->
+                        <div class="d-flex justify-content-end flex-wrap gap-2 mt-4">
+
+                            <a th:href="@{/ventas}"
+                               class="btn btn-outline-secondary">
+
+                                <i class="bi bi-x-circle me-1"></i>
+                                Cancelar
+
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                <i class="bi bi-check-circle me-1"></i>
+                                Registrar venta
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <!-- Lógica para agregar productos y calcular importes. -->
+    <script>
+
+        // Espera a que el documento esté completamente cargado.
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Obtiene los elementos principales del formulario.
+            const contenedorProductos = document.getElementById("contenedorProductos");
+            const plantillaProducto = document.getElementById("plantillaProducto");
+            const botonAgregarProducto = document.getElementById("btnAgregarProducto");
+            const totalVenta = document.getElementById("totalVenta");
+            const formulario = document.getElementById("formularioVenta");
+
+            // Agrega una fila nueva para seleccionar un producto.
+            function agregarProducto() {
+
+                const nuevaFila = plantillaProducto.content.cloneNode(true);
+
+                // Inserta la nueva fila en el formulario.
+                contenedorProductos.appendChild(nuevaFila);
+
+                calcularTotal();
+            }
+
+            // Calcula el subtotal de cada producto y el total general.
+            function calcularTotal() {
+
+                let total = 0;
+
+                const filas = contenedorProductos.querySelectorAll(".fila-producto");
+
+                filas.forEach(function (fila) {
+
+                    const selector = fila.querySelector(".selector-producto");
+                    const cantidadInput = fila.querySelector(".cantidad-producto");
+                    const precioInput = fila.querySelector(".precio-producto");
+                    const subtotalInput = fila.querySelector(".subtotal-producto");
+
+                    // Obtiene el precio del producto seleccionado.
+                    const opcion = selector.selectedOptions[0];
+                    const precio = Number(opcion.dataset.precio || 0);
+
+                    // Evita cantidades negativas o vacías.
+                    const cantidad = Math.max(0, Number(cantidadInput.value) || 0);
+
+                    // Calcula el subtotal.
+                    const subtotal = precio * cantidad;
+
+                    // Actualiza los campos informativos.
+                    precioInput.value = precio.toFixed(2);
+                    subtotalInput.value = subtotal.toFixed(2);
+
+                    total += subtotal;
+
+                });
+
+                // Actualiza el total general.
+                totalVenta.textContent = total.toFixed(2);
+            }
+
+            // Escucha los cambios en productos y cantidades.
+            contenedorProductos.addEventListener("change", calcularTotal);
+            contenedorProductos.addEventListener("input", calcularTotal);
+
+            // Permite eliminar una fila de producto.
+            contenedorProductos.addEventListener("click", function (evento) {
+
+                const boton = evento.target.closest(".btn-eliminar");
+
+                if (boton) {
+
+                    // Elimina solamente la fila seleccionada.
+                    boton.closest(".fila-producto").remove();
+
+                    calcularTotal();
+
+                }
+
+            });
+
+            // Registra el evento del botón para agregar productos.
+            botonAgregarProducto.addEventListener("click", agregarProducto);
+
+            // Inicia el formulario con una fila de producto.
+            agregarProducto();
+
+            // Valida los datos antes de enviar la venta.
+            formulario.addEventListener("submit", function (evento) {
+
+                const filas = contenedorProductos.querySelectorAll(".fila-producto");
+
+                // Comprueba que exista al menos un producto.
+                if (filas.length === 0) {
+
+                    evento.preventDefault();
+
+                    alert("Debes agregar al menos un producto a la venta.");
+
+                    return;
+
+                }
+
+                let formularioValido = true;
+                let primerCampoInvalido = null;
+
+                // Valida que cada fila tenga producto y cantidad correctos.
+                filas.forEach(function (fila) {
+
+                    const producto = fila.querySelector(".selector-producto");
+                    const cantidad = fila.querySelector(".cantidad-producto");
+
+                    // Comprueba que se haya seleccionado un producto.
+                    if (!producto.value) {
+
+                        formularioValido = false;
+                        primerCampoInvalido = primerCampoInvalido || producto;
+
+                    }
+
+                    // Comprueba que la cantidad sea un entero positivo.
+                    if (
+                        !cantidad.value ||
+                        !Number.isInteger(Number(cantidad.value)) ||
+                        Number(cantidad.value) <= 0
+                    ) {
+
+                        formularioValido = false;
+                        primerCampoInvalido = primerCampoInvalido || cantidad;
+
+                    }
+
+                });
+
+                // Evita el envío si existe algún dato incorrecto.
+                if (!formularioValido) {
+
+                    evento.preventDefault();
+
+                    alert("Revisa los productos y las cantidades antes de registrar la venta.");
+
+                    // Enfoca el primer campo que necesita corrección.
+                    if (primerCampoInvalido) {
+                        primerCampoInvalido.focus();
+                    }
+
+                }
+
+            });
+
+        });
+
+    </script>
+
+</body>
+</html>

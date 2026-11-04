@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Detalle de venta')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Detalle de venta')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado y navegación. -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Detalle de venta</h3>
+
+                    <p class="text-muted mb-0">
+                        Consulta los productos y el importe de la venta.
+                    </p>
+                </div>
+
+                <!-- Regresa al historial de ventas. -->
+                <a th:href="@{/ventas}"
+                   class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Volver a ventas
+
+                </a>
+
+            </div>
+
+            <!-- Información general de la venta. -->
+            <div class="sivet-card mb-4">
+
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-receipt me-2"></i>
+                    Información general
+                </h5>
+
+                <div class="row g-3">
+
+                    <!-- Código de venta. -->
+                    <div class="col-12 col-md-3">
+
+                        <label class="text-muted small d-block">
+                            Código de venta
+                        </label>
+
+                        <h5 class="fw-bold mb-0"
+                            th:text="${'VEN-' + venta.id}">
+                        </h5>
+
+                    </div>
+
+                    <!-- Cliente. -->
+                    <div class="col-12 col-md-3">
+
+                        <label class="text-muted small d-block">
+                            Cliente
+                        </label>
+
+                        <h6 class="fw-semibold mb-0"
+                            th:if="${venta.cliente != null}"
+                            th:text="${venta.cliente.nombre}">
+                        </h6>
+
+                        <h6 class="fw-semibold text-muted mb-0"
+                            th:unless="${venta.cliente != null}">
+                            Cliente ocasional
+                        </h6>
+
+                    </div>
+
+                    <!-- Fecha de venta. -->
+                    <div class="col-12 col-md-3">
+
+                        <label class="text-muted small d-block">
+                            Fecha de venta
+                        </label>
+
+                        <h6 class="fw-semibold mb-0"
+                            th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy HH:mm')}">
+                        </h6>
+
+                    </div>
+
+                    <!-- Estado de la venta. -->
+                    <div class="col-12 col-md-3">
+
+                        <label class="text-muted small d-block">
+                            Estado
+                        </label>
+
+                        <div>
+
+                            <span th:if="${venta.estado == 'REGISTRADA'}"
+                                  class="badge text-bg-success">
+                                Registrada
+                            </span>
+
+                            <span th:unless="${venta.estado == 'REGISTRADA'}"
+                                  class="badge text-bg-secondary"
+                                  th:text="${venta.estado}">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Observaciones de la venta. -->
+                <div th:if="${venta.observacion != null and !#strings.isEmpty(venta.observacion)}"
+                     class="border-top mt-3 pt-3">
+
+                    <label class="text-muted small d-block">
+                        Observaciones
+                    </label>
+
+                    <p class="mb-0"
+                       th:text="${venta.observacion}">
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Productos vendidos. -->
+            <div class="sivet-card">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-cart-check me-2"></i>
+                        Productos vendidos
+                    </h5>
+
+                    <!-- Cantidad de productos registrados. -->
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(detalles)} + ' productos'">
+                        0 productos
+                    </span>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Código</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio unitario</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorre todos los detalles de la venta. -->
+                            <tr th:each="detalle : ${detalles}">
+
+                                <!-- Nombre del producto. -->
+                                <td class="fw-semibold"
+                                    th:text="${detalle.producto.nombre}">
+                                </td>
+
+                                <!-- Código del producto. -->
+                                <td th:text="${detalle.producto.codigo}">
+                                </td>
+
+                                <!-- Cantidad vendida. -->
+                                <td class="text-center"
+                                    th:text="${detalle.cantidad}">
+                                </td>
+
+                                <!-- Precio unitario. -->
+                                <td class="text-end text-nowrap"
+                                    th:text="${'S/ ' + #numbers.formatDecimal(detalle.precioUnitario, 1, 2)}">
+                                </td>
+
+                                <!-- Subtotal del producto. -->
+                                <td class="text-end fw-semibold text-nowrap"
+                                    th:text="${'S/ ' + #numbers.formatDecimal(detalle.subtotal, 1, 2)}">
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen detalles. -->
+                            <tr th:if="${#lists.isEmpty(detalles)}">
+
+                                <td colspan="5" class="text-center py-5">
+
+                                    <i class="bi bi-cart-x display-5 text-secondary"></i>
+
+                                    <p class="fw-semibold mt-3 mb-1">
+                                        No hay productos registrados.
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Esta venta todavía no tiene detalles disponibles.
+                                    </small>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- Total general de la venta. -->
+                <div class="border-top pt-4 mt-3">
+
+                    <div class="d-flex justify-content-end align-items-center gap-3">
+
+                        <span class="fw-semibold">
+                            Total de la venta:
+                        </span>
+
+                        <h4 class="fw-bold text-primary mb-0"
+                            th:text="${'S/ ' + #numbers.formatDecimal(venta.total, 1, 2)}">
+                            S/ 0.00
+                        </h4>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

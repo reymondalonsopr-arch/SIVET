@@ -1,0 +1,500 @@
+
+/* =====================================================
+   SIVET - SISTEMA DE INVENTARIO Y VENTAS
+   Diseño moderno, adaptable y reutilizable
+   ===================================================== */
+
+/* Variables generales de colores y dimensiones. */
+:root {
+    --sivet-primary: #07385f;
+    --sivet-primary-dark: #052b49;
+    --sivet-secondary: #12a3c4;
+    --sivet-orange: #ff7a00;
+
+    --sivet-sidebar: #07385f;
+    --sivet-sidebar-hover: rgba(255, 255, 255, 0.09);
+    --sivet-sidebar-active: #12a3c4;
+
+    --sivet-background: #f3f6fa;
+    --sivet-surface: #ffffff;
+    --sivet-text: #263247;
+    --sivet-muted: #718096;
+    --sivet-border: #e5e9f0;
+
+    --sivet-sidebar-width: 305px;
+    --sivet-radius: 12px;
+}
+
+/* =====================================================
+   CONFIGURACIÓN GENERAL
+   ===================================================== */
+
+/* Aplicamos el modelo de caja a todos los elementos. */
+* {
+    box-sizing: border-box;
+}
+
+/* Configuración general del documento. */
+html {
+    min-height: 100%;
+    scroll-behavior: smooth;
+}
+
+/* Estilos principales del cuerpo. */
+body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--sivet-background);
+    color: var(--sivet-text);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Enlaces generales. */
+a {
+    transition: color 0.2s ease;
+}
+
+/* =====================================================
+   MENÚ LATERAL
+   ===================================================== */
+
+/* Estructura fija del menú lateral. */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+
+    width: var(--sivet-sidebar-width);
+    height: 100vh;
+
+    padding: 20px 14px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    background: var(--sivet-sidebar);
+    color: #ffffff;
+}
+
+/* Barra de desplazamiento del menú. */
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* =====================================================
+   LOGOTIPO
+   ===================================================== */
+
+/* Distribución del logotipo y nombre del sistema. */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 4px 14px 22px;
+}
+
+/* Icono principal del logotipo. */
+.sidebar-logo i {
+    color: var(--sivet-orange);
+    font-size: 34px;
+}
+
+/* Nombre SIVET. */
+.sidebar-logo h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Descripción del sistema. */
+.sidebar-logo span {
+    display: block;
+    margin-top: 2px;
+    color: #c8d9e7;
+    font-size: 11px;
+}
+
+/* =====================================================
+   SECCIONES DEL MENÚ
+   ===================================================== */
+
+/* Títulos de las secciones. */
+.sidebar-section {
+    margin: 22px 16px 9px;
+
+    color: #b8ccdc;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Contenedor de enlaces. */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Enlaces del menú. */
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    width: 100%;
+    min-height: 52px;
+
+    padding: 12px 17px;
+    border-radius: 11px;
+
+    color: #eef6fb;
+    font-size: 15px;
+    text-decoration: none;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+/* Efecto al pasar el cursor. */
+.sidebar-menu a:hover {
+    background-color: var(--sivet-sidebar-hover);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
+/* Enlace correspondiente a la página actual. */
+.sidebar-menu a.active {
+    background-color: var(--sivet-sidebar-active);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Iconos de navegación. */
+.sidebar-menu a i {
+    width: 27px;
+    text-align: center;
+    font-size: 21px;
+}
+
+/* =====================================================
+   PIE DEL MENÚ LATERAL
+   ===================================================== */
+
+/* Separador de la parte inferior. */
+.sidebar-footer {
+    margin: auto 14px 10px;
+    padding-top: 18px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+
+    color: #b8ccdc;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Icono del pie. */
+.sidebar-footer i {
+    color: var(--sivet-orange);
+    font-size: 22px;
+}
+
+/* =====================================================
+   BARRA SUPERIOR
+   ===================================================== */
+
+/* Barra superior dentro del contenido principal. */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 900;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+
+    width: 100%;
+    min-height: 72px;
+
+    padding: 12px 28px;
+
+    border-bottom: 1px solid var(--sivet-border);
+    background-color: var(--sivet-surface);
+    box-shadow: 0 2px 8px rgba(20, 35, 60, 0.03);
+}
+
+/* Título de la barra superior. */
+.topbar h5 {
+    color: var(--sivet-primary);
+}
+
+/* =====================================================
+   CONTENIDO PRINCIPAL
+   ===================================================== */
+
+/* Desplaza el contenido para dejar espacio al menú. */
+.main-content {
+    min-height: 100vh;
+    margin-left: var(--sivet-sidebar-width);
+}
+
+/* Contenedor de las páginas. */
+.page-content {
+    padding: 25px;
+}
+
+/* =====================================================
+   TARJETAS Y PANELES
+   ===================================================== */
+
+/* Tarjetas generales. */
+.sivet-card {
+    height: 100%;
+    padding: 20px;
+
+    border: 1px solid var(--sivet-border);
+    border-radius: var(--sivet-radius);
+
+    background-color: var(--sivet-surface);
+    box-shadow: 0 3px 12px rgba(20, 35, 60, 0.04);
+}
+
+/* Títulos de las tarjetas. */
+.sivet-card h5 {
+    margin-bottom: 12px;
+    color: var(--sivet-primary);
+    font-weight: 600;
+}
+
+/* Tarjetas de indicadores. */
+.stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+/* Iconos de indicadores. */
+.stat-card .stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 52px;
+    height: 52px;
+
+    border-radius: 12px;
+    background-color: #eaf4fa;
+
+    color: var(--sivet-secondary);
+    font-size: 24px;
+}
+
+/* Valores de indicadores. */
+.stat-card .stat-value {
+    margin: 0;
+    color: var(--sivet-primary);
+    font-size: 26px;
+    font-weight: 700;
+}
+
+/* Tarjetas Bootstrap. */
+.card {
+    border-radius: var(--sivet-radius);
+}
+
+/* =====================================================
+   BOTONES
+   ===================================================== */
+
+/* Botón principal. */
+.btn-primary {
+    border-color: var(--sivet-primary);
+    background-color: var(--sivet-primary);
+}
+
+/* Efecto del botón principal. */
+.btn-primary:hover {
+    border-color: var(--sivet-primary-dark);
+    background-color: var(--sivet-primary-dark);
+}
+
+/* Botón secundario con color turquesa. */
+.btn-info {
+    border-color: var(--sivet-secondary);
+    background-color: var(--sivet-secondary);
+    color: #ffffff;
+}
+
+/* Botones de acciones. */
+.btn {
+    border-radius: 7px;
+    transition: all 0.2s ease;
+}
+
+/* =====================================================
+   TABLAS
+   ===================================================== */
+
+/* Contenedor de tablas. */
+.table-container {
+    overflow-x: auto;
+    padding: 15px;
+
+    border: 1px solid var(--sivet-border);
+    border-radius: 10px;
+
+    background-color: #ffffff;
+}
+
+/* Encabezados de las tablas. */
+.table thead th {
+    padding: 13px 12px;
+
+    background-color: #edf3f8;
+    color: var(--sivet-primary);
+
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Celdas de las tablas. */
+.table tbody td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Efecto de las filas. */
+.table tbody tr:hover {
+    background-color: #f7fafc;
+}
+
+/* =====================================================
+   FORMULARIOS
+   ===================================================== */
+
+/* Campos de entrada y listas desplegables. */
+.form-control,
+.form-select {
+    min-height: 42px;
+
+    border-color: #dce2eb;
+    border-radius: 7px;
+
+    color: var(--sivet-text);
+}
+
+/* Efecto de enfoque en los campos. */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--sivet-secondary);
+    box-shadow: 0 0 0 3px rgba(18, 163, 196, 0.12);
+}
+
+/* Etiquetas de formularios. */
+.form-label {
+    color: var(--sivet-text);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* =====================================================
+   ALERTAS Y MENSAJES
+   ===================================================== */
+
+/* Bordes redondeados de las alertas. */
+.alert {
+    border-radius: 9px;
+}
+
+/* =====================================================
+   DISEÑO RESPONSIVO
+   ===================================================== */
+
+/* Ajustes para tabletas y pantallas pequeñas. */
+@media (max-width: 992px) {
+
+    :root {
+        --sivet-sidebar-width: 260px;
+    }
+
+    .sidebar {
+        width: var(--sivet-sidebar-width);
+    }
+
+    .topbar {
+        padding: 12px 20px;
+    }
+
+}
+
+/* Ajustes para teléfonos móviles. */
+@media (max-width: 768px) {
+
+    /* El menú pasa a ocupar el ancho disponible. */
+    .sidebar {
+        position: relative;
+
+        width: 100%;
+        height: auto;
+        max-height: none;
+
+        padding: 15px;
+    }
+
+    /* El contenido ya no necesita desplazamiento lateral. */
+    .main-content {
+        margin-left: 0;
+    }
+
+    /* La barra superior ocupa todo el ancho. */
+    .topbar {
+        position: relative;
+
+        min-height: 65px;
+        padding: 12px 16px;
+    }
+
+    /* Ajuste del contenido de las páginas. */
+    .page-content {
+        padding: 15px;
+    }
+
+    /* Reduce el tamaño de los indicadores. */
+    .stat-card .stat-value {
+        font-size: 22px;
+    }
+
+}
+
+/* Ajustes para teléfonos muy pequeños. */
+@media (max-width: 480px) {
+
+    .sidebar-logo h2 {
+        font-size: 22px;
+    }
+
+    .topbar {
+        flex-wrap: wrap;
+    }
+
+    .topbar h5 {
+        font-size: 16px;
+    }
+
+}

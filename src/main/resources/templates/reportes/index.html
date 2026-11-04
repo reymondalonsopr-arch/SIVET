@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Reportes')}"></head>
+
+<body>
+
+    <!-- Menú lateral compartido de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Reportes')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado de la página. -->
+            <div class="mb-4">
+                <h3 class="fw-bold mb-1">Reportes del sistema</h3>
+                <p class="text-muted mb-0">
+                    Consulta compras, ventas y resultados de un periodo determinado.
+                </p>
+            </div>
+
+            <!-- Tarjetas con los totales generales. -->
+            <div class="row g-4">
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="sivet-card h-100">
+                        <p class="text-muted mb-1">Productos</p>
+                        <h2 class="fw-bold mb-0" th:text="${totalProductos}">0</h2>
+                        <i class="bi bi-box-seam fs-1 text-primary"></i>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="sivet-card h-100">
+                        <p class="text-muted mb-1">Compras registradas</p>
+                        <h2 class="fw-bold mb-0" th:text="${totalCompras}">0</h2>
+                        <i class="bi bi-cart-plus fs-1 text-success"></i>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="sivet-card h-100">
+                        <p class="text-muted mb-1">Ventas registradas</p>
+                        <h2 class="fw-bold mb-0" th:text="${totalVentas}">0</h2>
+                        <i class="bi bi-receipt fs-1 text-warning"></i>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="sivet-card h-100">
+                        <p class="text-muted mb-1">Movimientos</p>
+                        <h2 class="fw-bold mb-0" th:text="${totalMovimientos}">0</h2>
+                        <i class="bi bi-arrow-left-right fs-1 text-info"></i>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Formulario para filtrar los reportes por fechas. -->
+            <div class="sivet-card mt-4">
+
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-calendar-range me-2"></i>
+                    Filtrar reportes por fecha
+                </h5>
+
+                <!-- Mensaje de advertencia para fechas incorrectas. -->
+                <div class="alert alert-warning"
+                     th:if="${errorFechas}"
+                     th:text="${errorFechas}">
+                </div>
+
+                <form th:action="@{/reportes}" method="get">
+
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-12 col-md-4">
+                            <label for="fechaInicio" class="form-label">
+                                Fecha inicial
+                            </label>
+                            <input type="date"
+                                   class="form-control"
+                                   id="fechaInicio"
+                                   name="fechaInicio"
+                                   th:value="${fechaInicio}"
+                                   required>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="fechaFin" class="form-label">
+                                Fecha final
+                            </label>
+                            <input type="date"
+                                   class="form-control"
+                                   id="fechaFin"
+                                   name="fechaFin"
+                                   th:value="${fechaFin}"
+                                   required>
+                        </div>
+
+                        <div class="col-12 col-md-4 d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search me-1"></i>
+                                Consultar
+                            </button>
+
+                            <a th:href="@{/reportes}"
+                               class="btn btn-outline-secondary">
+                                Limpiar
+                            </a>
+                        </div>
+
+                    </div>
+
+                </form>
+
+                <!-- Botón para descargar el Excel del periodo seleccionado. -->
+                <div class="mt-3">
+                    <a class="btn btn-success"
+                       th:href="@{/reportes/exportar(fechaInicio=${fechaInicio},fechaFin=${fechaFin})}">
+                        <i class="bi bi-file-earmark-excel me-2"></i>
+                        Exportar a Excel
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- Resumen económico del periodo seleccionado. -->
+            <div class="sivet-card mt-4">
+
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-cash-stack me-2"></i>
+                    Resumen económico del periodo
+                </h5>
+
+                <div class="row g-3">
+
+                    <div class="col-12 col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <p class="text-muted mb-1">Total de compras</p>
+                            <h3 class="fw-bold text-danger mb-0">
+                                S/ <span th:text="${#numbers.formatDecimal(totalComprasPeriodo, 1, 2)}">0.00</span>
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <p class="text-muted mb-1">Total de ventas</p>
+                            <h3 class="fw-bold text-success mb-0">
+                                S/ <span th:text="${#numbers.formatDecimal(totalVentasPeriodo, 1, 2)}">0.00</span>
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <div class="border rounded p-3 h-100">
+                            <p class="text-muted mb-1">Diferencia ventas - compras</p>
+                            <h3 class="fw-bold mb-0"
+                                th:classappend="${balancePeriodo.signum() >= 0 ? 'text-success' : 'text-danger'}">
+                                S/ <span th:text="${#numbers.formatDecimal(balancePeriodo, 1, 2)}">0.00</span>
+                            </h3>
+                        </div>
+                    </div>
+
+                </div>
+
+                <p class="text-muted small mt-3 mb-0">
+                    La diferencia es un cálculo referencial entre ventas y compras.
+                    No representa la utilidad neta, porque no incluye otros costos
+                    ni gastos del negocio.
+                </p>
+
+            </div>
+
+            <!-- Gráficos estadísticos de compras, ventas y productos. -->
+            <div class="row g-4 mt-1">
+
+                <!-- Gráfico mensual de compras y ventas. -->
+                <div class="col-12">
+                    <div class="sivet-card h-100">
+
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-bar-chart-line me-2"></i>
+                            Compras vs. ventas por mes
+                        </h5>
+
+                        <div style="position: relative; height: 350px;">
+                            <canvas id="graficoComprasVentas"></canvas>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Gráfico de los productos más vendidos. -->
+                <div class="col-12">
+                    <div class="sivet-card h-100">
+
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-trophy me-2"></i>
+                            Top 10 productos más vendidos
+                        </h5>
+
+                        <div style="position: relative; height: 400px;">
+                            <canvas id="graficoProductos"></canvas>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Tabla de compras del periodo. -->
+            <div class="sivet-card mt-4">
+
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-cart-plus me-2"></i>
+                    Compras del periodo
+                </h5>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Proveedor</th>
+                                <th>Estado</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr th:each="compra : ${comprasPeriodo}">
+                                <td th:text="${compra.id}"></td>
+                                <td th:text="${#temporals.format(compra.fecha, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td th:text="${compra.proveedor != null ? compra.proveedor.nombre : 'Sin proveedor'}"></td>
+                                <td th:text="${compra.estado}"></td>
+                                <td class="text-end">
+                                    S/ <span th:text="${#numbers.formatDecimal(compra.total, 1, 2)}"></span>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(comprasPeriodo)}">
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    No hay compras en el periodo seleccionado.
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- Tabla de ventas del periodo. -->
+            <div class="sivet-card mt-4">
+
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-receipt me-2"></i>
+                    Ventas del periodo
+                </h5>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Estado</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr th:each="venta : ${ventasPeriodo}">
+                                <td th:text="${venta.id}"></td>
+                                <td th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td th:text="${venta.cliente != null ? venta.cliente.nombre : 'Cliente general'}"></td>
+                                <td th:text="${venta.estado}"></td>
+                                <td class="text-end">
+                                    S/ <span th:text="${#numbers.formatDecimal(venta.total, 1, 2)}"></span>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(ventasPeriodo)}">
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    No hay ventas en el periodo seleccionado.
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <!-- Librería Chart.js para construir los gráficos. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Datos y configuración de los gráficos. -->
+    <script th:inline="javascript">
+
+        // Espera a que el documento esté completamente cargado.
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Recupera los datos reales enviados por el controlador.
+            const meses = /*[[${mesesGrafico}]]*/ [];
+            const compras = /*[[${comprasGrafico}]]*/ [];
+            const ventas = /*[[${ventasGrafico}]]*/ [];
+            const nombresProductos = /*[[${nombresProductos}]]*/ [];
+            const cantidadesProductos = /*[[${cantidadesProductos}]]*/ [];
+
+            // Obtiene el elemento donde se dibujará el gráfico mensual.
+            const elementoComprasVentas = document.getElementById(
+                "graficoComprasVentas"
+            );
+
+            // Crea el gráfico mensual de compras y ventas.
+            if (elementoComprasVentas) {
+
+                new Chart(elementoComprasVentas, {
+
+                    // Tipo de gráfico: barras.
+                    type: "bar",
+
+                    data: {
+                        labels: meses,
+
+                        datasets: [
+                            {
+                                label: "Compras (S/)",
+                                data: compras,
+                                backgroundColor: "rgba(220, 53, 69, 0.75)",
+                                borderColor: "rgb(220, 53, 69)",
+                                borderWidth: 1
+                            },
+                            {
+                                label: "Ventas (S/)",
+                                data: ventas,
+                                backgroundColor: "rgba(25, 135, 84, 0.75)",
+                                borderColor: "rgb(25, 135, 84)",
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        // Configuración de los ejes y leyenda.
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: "Importe en soles (S/)"
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Mes"
+                                }
+                            }
+                        },
+
+                        plugins: {
+                            legend: {
+                                position: "top"
+                            }
+                        }
+                    }
+
+                });
+
+            }
+
+            // Obtiene el elemento donde se dibujará el gráfico de productos.
+            const elementoProductos = document.getElementById(
+                "graficoProductos"
+            );
+
+            // Crea el gráfico de los diez productos más vendidos.
+            if (elementoProductos) {
+
+                new Chart(elementoProductos, {
+
+                    // Tipo de gráfico: barras horizontales.
+                    type: "bar",
+
+                    data: {
+                        labels: nombresProductos,
+
+                        datasets: [
+                            {
+                                label: "Unidades vendidas",
+                                data: cantidadesProductos,
+                                backgroundColor: "rgba(13, 110, 253, 0.75)",
+                                borderColor: "rgb(13, 110, 253)",
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+
+                    options: {
+                        indexAxis: "y",
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        // Configuración del eje de cantidades.
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                },
+                                title: {
+                                    display: true,
+                                    text: "Unidades vendidas"
+                                }
+                            }
+                        },
+
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+
+                });
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>

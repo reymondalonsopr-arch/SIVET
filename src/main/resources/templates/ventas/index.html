@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Gestión de ventas')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Gestión de ventas')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado y botón de registro. -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Gestión de ventas</h3>
+
+                    <p class="text-muted mb-0">
+                        Registra y consulta las ventas realizadas a tus clientes.
+                    </p>
+                </div>
+
+                <!-- Acceso al formulario de ventas. -->
+                <a th:href="@{/ventas/nuevo}"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Nueva venta
+
+                </a>
+
+            </div>
+
+            <!-- Mensaje de operación exitosa. -->
+            <div th:if="${mensajeExito}"
+                 class="alert alert-success alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-check-circle me-2"></i>
+                <span th:text="${mensajeExito}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Mensaje de error. -->
+            <div th:if="${mensajeError}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span th:text="${mensajeError}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Historial de ventas. -->
+            <div class="sivet-card">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-receipt me-2"></i>
+                        Historial de ventas
+                    </h5>
+
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(ventas)} + ' ventas'">
+                        0 ventas
+                    </span>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorre todas las ventas registradas. -->
+                            <tr th:each="venta : ${ventas}">
+
+                                <!-- Código de venta. -->
+                                <td class="fw-semibold"
+                                    th:text="${'VEN-' + venta.id}">
+                                    VEN-1
+                                </td>
+
+                                <!-- Cliente o venta ocasional. -->
+                                <td>
+
+                                    <span th:if="${venta.cliente != null}"
+                                          th:text="${venta.cliente.nombre}">
+                                        Cliente
+                                    </span>
+
+                                    <span th:unless="${venta.cliente != null}"
+                                          class="text-muted">
+                                        Cliente ocasional
+                                    </span>
+
+                                </td>
+
+                                <!-- Fecha de venta. -->
+                                <td class="text-nowrap"
+                                    th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2026 10:00
+                                </td>
+
+                                <!-- Total de la venta. -->
+                                <td class="fw-semibold text-nowrap"
+                                    th:text="${'S/ ' + #numbers.formatDecimal(venta.total, 1, 2)}">
+                                    S/ 0.00
+                                </td>
+
+                                <!-- Estado de la venta. -->
+                                <td>
+
+                                    <span th:if="${venta.estado == 'REGISTRADA'}"
+                                          class="badge text-bg-success">
+                                        Registrada
+                                    </span>
+
+                                    <span th:if="${venta.estado == 'ANULADA'}"
+                                          class="badge text-bg-secondary">
+                                        Anulada
+                                    </span>
+
+                                    <span th:if="${venta.estado != 'REGISTRADA' and venta.estado != 'ANULADA'}"
+                                          class="badge text-bg-secondary"
+                                          th:text="${venta.estado}">
+                                    </span>
+
+                                </td>
+
+                                <!-- Acciones disponibles para la venta. -->
+                                <td class="text-center">
+
+                                    <div class="d-flex justify-content-center gap-2">
+
+                                        <!-- Acceso al detalle de la venta. -->
+                                        <a th:href="@{/ventas/detalle/{id}(id=${venta.id})}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Ver detalles">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </a>
+
+                                        <!-- Anulación disponible solo para ventas registradas. -->
+                                        <form th:if="${venta.estado == 'REGISTRADA'}"
+                                              th:action="@{/ventas/anular/{id}(id=${venta.id})}"
+                                              method="post"
+                                              onsubmit="return confirm('¿Estás seguro de anular esta venta? Se devolverán los productos al inventario.');">
+
+                                            <!-- Protección CSRF de Spring Security. -->
+                                            <input type="hidden"
+                                                   th:name="${_csrf.parameterName}"
+                                                   th:value="${_csrf.token}"/>
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Anular venta">
+
+                                                <i class="bi bi-x-circle"></i>
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen ventas. -->
+                            <tr th:if="${#lists.isEmpty(ventas)}">
+
+                                <td colspan="6"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-cart-x display-5 text-secondary"></i>
+
+                                    <p class="fw-semibold mt-3 mb-1">
+                                        Todavía no hay ventas registradas.
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Utiliza el botón Nueva venta para comenzar.
+                                    </small>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

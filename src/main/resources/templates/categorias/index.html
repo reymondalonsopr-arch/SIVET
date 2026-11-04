@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Gestión de categorías')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Gestión de categorías')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado del módulo. -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Gestión de categorías</h3>
+
+                    <p class="text-muted mb-0">
+                        Organiza los productos por categorías.
+                    </p>
+                </div>
+
+                <!-- Acceso al registro de categorías. -->
+                <a th:href="@{/categorias/nuevo}"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Nueva categoría
+
+                </a>
+
+            </div>
+
+            <!-- Mensaje de éxito. -->
+            <div th:if="${mensajeExito}"
+                 class="alert alert-success alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-check-circle me-2"></i>
+
+                <span th:text="${mensajeExito}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Mensaje de error. -->
+            <div th:if="${mensajeError}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                <span th:text="${mensajeError}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Panel de categorías registradas. -->
+            <div class="sivet-card">
+
+                <!-- Encabezado de la tabla. -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-tags me-2"></i>
+                        Categorías registradas
+                    </h5>
+
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(categorias)} + ' categorías'">
+                        0 categorías
+                    </span>
+
+                </div>
+
+                <!-- Tabla de categorías. -->
+                <div class="table-container">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorremos las categorías registradas. -->
+                            <tr th:each="categoria : ${categorias}">
+
+                                <td th:text="${categoria.id}">
+                                    1
+                                </td>
+
+                                <td class="fw-semibold"
+                                    th:text="${categoria.nombre}">
+                                    Nombre de categoría
+                                </td>
+
+                                <td th:text="${categoria.descripcion ?: '-'}">
+                                    Descripción
+                                </td>
+
+                                <!-- Estado de la categoría. -->
+                                <td>
+
+                                    <span th:if="${categoria.activo}"
+                                          class="badge text-bg-success">
+                                        Activa
+                                    </span>
+
+                                    <span th:unless="${categoria.activo}"
+                                          class="badge text-bg-danger">
+                                        Inactiva
+                                    </span>
+
+                                </td>
+
+                                <!-- Acciones disponibles. -->
+                                <td class="text-center">
+
+                                    <div class="d-flex justify-content-center gap-2">
+
+                                        <!-- Editar categoría. -->
+                                        <a th:href="@{/categorias/editar/{id}(id=${categoria.id})}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Editar categoría">
+
+                                            <i class="bi bi-pencil-square"></i>
+
+                                        </a>
+
+                                        <!-- Cambiar estado de la categoría. -->
+                                        <form th:action="@{/categorias/cambiar-estado/{id}(id=${categoria.id})}"
+                                              method="post">
+
+                                            <!-- Invertimos el estado actual. -->
+                                            <input type="hidden"
+                                                   name="activo"
+                                                   th:value="${!categoria.activo}">
+
+                                            <button type="submit"
+                                                    class="btn btn-sm"
+                                                    th:classappend="${categoria.activo} ? ' btn-outline-danger' : ' btn-outline-success'"
+                                                    th:title="${categoria.activo} ? 'Desactivar categoría' : 'Activar categoría'">
+
+                                                <i th:class="${categoria.activo} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
+
+                                            </button>
+
+                                        </form>
+
+                                        <!-- Eliminar categoría si no tiene productos asociados. -->
+                                        <form th:action="@{/categorias/eliminar/{id}(id=${categoria.id})}"
+                                              method="post"
+                                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se puede deshacer.');">
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Eliminar categoría">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen categorías. -->
+                            <tr th:if="${#lists.isEmpty(categorias)}">
+
+                                <td colspan="5"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-tags display-5 text-secondary"></i>
+
+                                    <p class="mt-3 mb-1 fw-semibold">
+                                        No hay categorías registradas.
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Utiliza el botón Nueva categoría para comenzar.
+                                    </small>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Gestión de roles')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Gestión de roles')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado del módulo. -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Roles del sistema</h3>
+
+                    <p class="text-muted mb-0">
+                        Administra los tipos de acceso de los usuarios.
+                    </p>
+                </div>
+
+                <!-- Acceso al formulario de registro. -->
+                <a th:href="@{/roles/nuevo}"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Nuevo rol
+
+                </a>
+
+            </div>
+
+            <!-- Mensaje de operación exitosa. -->
+            <div th:if="${mensajeExito}"
+                 class="alert alert-success alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-check-circle me-2"></i>
+
+                <span th:text="${mensajeExito}">
+                    Operación realizada correctamente.
+                </span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Mensaje de error. -->
+            <div th:if="${mensajeError}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                <span th:text="${mensajeError}">
+                    No se pudo completar la operación.
+                </span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Panel de roles registrados. -->
+            <div class="sivet-card">
+
+                <!-- Encabezado de la tabla. -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        Roles registrados
+                    </h5>
+
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(roles)} + ' roles'">
+                        0 roles
+                    </span>
+
+                </div>
+
+                <!-- Tabla de roles. -->
+                <div class="table-container">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorremos los roles registrados. -->
+                            <tr th:each="rol : ${roles}">
+
+                                <td th:text="${rol.id}">
+                                    1
+                                </td>
+
+                                <td>
+                                    <span class="badge text-bg-primary"
+                                          th:text="${rol.nombre}">
+                                        ADMIN
+                                    </span>
+                                </td>
+
+                                <td th:text="${rol.descripcion ?: 'Sin descripción'}">
+                                    Descripción del rol
+                                </td>
+
+                                <td class="text-center">
+
+                                    <!-- Protegemos visualmente los roles principales. -->
+                                    <span th:if="${rol.nombre == 'ADMIN' 
+                                                  or rol.nombre == 'VENDEDOR' 
+                                                  or rol.nombre == 'ALMACENERO'}"
+                                          class="badge text-bg-secondary">
+
+                                        <i class="bi bi-lock-fill me-1"></i>
+                                        Protegido
+
+                                    </span>
+
+                                    <!-- Los demás roles pueden solicitar eliminación. -->
+                                    <form th:unless="${rol.nombre == 'ADMIN' 
+                                                      or rol.nombre == 'VENDEDOR' 
+                                                      or rol.nombre == 'ALMACENERO'}"
+                                          th:action="@{/roles/eliminar}"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirm('¿Está seguro de eliminar este rol? Esta acción no se puede deshacer.');">
+
+                                        <!-- Identificador del rol que se eliminará. -->
+                                        <input type="hidden"
+                                               name="id"
+                                               th:value="${rol.id}">
+
+                                        <!-- Botón de eliminación. -->
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger">
+
+                                            <i class="bi bi-trash me-1"></i>
+                                            Eliminar
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen roles. -->
+                            <tr th:if="${#lists.isEmpty(roles)}">
+
+                                <td colspan="4"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-shield-lock display-5 text-secondary"></i>
+
+                                    <p class="mt-3 mb-1 fw-semibold">
+                                        No hay roles registrados.
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Registra un rol para comenzar.
+                                    </small>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

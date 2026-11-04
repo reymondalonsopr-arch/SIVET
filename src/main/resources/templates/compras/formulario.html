@@ -1,0 +1,519 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Registrar compra')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Registrar compra')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado del formulario. -->
+            <div class="mb-4">
+                <h3 class="fw-bold mb-1">Registrar compra</h3>
+
+                <p class="text-muted mb-0">
+                    Selecciona el proveedor y agrega los productos adquiridos.
+                </p>
+            </div>
+
+            <!-- Mensaje de error enviado por el controlador. -->
+            <div th:if="${mensajeError}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span th:text="${mensajeError}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Formulario principal de compra. -->
+            <form th:action="@{/compras/guardar}"
+                  th:object="${compra}"
+                  method="post"
+                  id="formularioCompra">
+
+                <!-- Información general de la compra. -->
+                <div class="sivet-card mb-4">
+
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Información de la compra
+                    </h5>
+
+                    <div class="row g-3">
+
+                        <!-- Selección obligatoria del proveedor. -->
+                        <div class="col-12 col-md-6">
+
+                            <label for="proveedor" class="form-label">
+                                Proveedor *
+                            </label>
+
+                            <select id="proveedor"
+                                    th:field="*{proveedor.id}"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+                                    Selecciona un proveedor
+                                </option>
+
+                                <!-- Carga los proveedores activos. -->
+                                <option th:each="proveedor : ${proveedores}"
+                                        th:value="${proveedor.id}"
+                                        th:text="${proveedor.nombre}">
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- Observaciones opcionales. -->
+                        <div class="col-12 col-md-6">
+
+                            <label for="observacion" class="form-label">
+                                Observaciones
+                            </label>
+
+                            <input type="text"
+                                   id="observacion"
+                                   th:field="*{observacion}"
+                                   class="form-control"
+                                   minlength="3"
+                                   maxlength="250"
+                                   placeholder="Información adicional de la compra">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Detalles de los productos. -->
+                <div class="sivet-card mb-4">
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-box-seam me-2"></i>
+                            Productos de la compra
+                        </h5>
+
+                        <!-- Agrega una nueva fila de producto. -->
+                        <button type="button"
+                                id="agregarProducto"
+                                class="btn btn-outline-primary btn-sm">
+
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Agregar producto
+
+                        </button>
+
+                    </div>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle"
+                               id="tablaProductos">
+
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 230px;">Producto</th>
+                                    <th style="min-width: 110px;">Cantidad</th>
+                                    <th style="min-width: 150px;">Precio unitario (S/)</th>
+                                    <th style="min-width: 130px;">Subtotal (S/)</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="cuerpoProductos">
+
+                                <!-- Primera fila de producto. -->
+                                <tr class="fila-producto">
+
+                                    <td>
+
+                                        <select name="productoIds"
+                                                class="form-select producto-select"
+                                                required>
+
+                                            <option value="">
+                                                Selecciona un producto
+                                            </option>
+
+                                            <!-- Muestra los productos activos. -->
+                                            <option th:each="producto : ${productos}"
+                                                    th:value="${producto.id}"
+                                                    th:text="${producto.codigo + ' - ' + producto.nombre}"
+                                                    th:attr="data-precio=${producto.precioCompra}">
+                                            </option>
+
+                                        </select>
+
+                                    </td>
+
+                                    <td>
+
+                                        <input type="number"
+                                               name="cantidades"
+                                               class="form-control cantidad-input"
+                                               min="1"
+                                               max="1000000"
+                                               step="1"
+                                               value="1"
+                                               required>
+
+                                    </td>
+
+                                    <td>
+
+                                        <input type="number"
+                                               name="precios"
+                                               class="form-control precio-input"
+                                               min="0.01"
+                                               max="1000000"
+                                               step="0.01"
+                                               placeholder="0.00"
+                                               required>
+
+                                    </td>
+
+                                    <td>
+
+                                        <input type="text"
+                                               class="form-control subtotal-input"
+                                               value="0.00"
+                                               readonly>
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-sm eliminar-producto"
+                                                title="Eliminar producto"
+                                                aria-label="Eliminar producto"
+                                                disabled>
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <!-- Total general de la compra. -->
+                    <div class="d-flex justify-content-end mt-4">
+
+                        <div class="text-end">
+
+                            <span class="text-muted d-block">
+                                Total de la compra
+                            </span>
+
+                            <h3 class="fw-bold text-primary mb-0">
+                                S/ <span id="totalCompra">0.00</span>
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Botones de acción. -->
+                <div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
+
+                    <a th:href="@{/compras}"
+                       class="btn btn-outline-secondary">
+
+                        <i class="bi bi-x-circle me-1"></i>
+                        Cancelar
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-save me-1"></i>
+                        Registrar compra
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <!-- Lógica dinámica del formulario de compras. -->
+    <script>
+
+        // Espera a que el documento esté completamente cargado.
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Obtiene los elementos principales del formulario.
+            const cuerpoProductos = document.getElementById("cuerpoProductos");
+            const botonAgregar = document.getElementById("agregarProducto");
+            const totalCompra = document.getElementById("totalCompra");
+            const formulario = document.getElementById("formularioCompra");
+
+            // Calcula el subtotal de una fila.
+            function calcularSubtotal(fila) {
+
+                const cantidad = parseFloat(
+                    fila.querySelector(".cantidad-input").value
+                ) || 0;
+
+                const precio = parseFloat(
+                    fila.querySelector(".precio-input").value
+                ) || 0;
+
+                const subtotal = cantidad * precio;
+
+                fila.querySelector(".subtotal-input").value =
+                    subtotal.toFixed(2);
+
+                return subtotal;
+            }
+
+            // Calcula el total de todas las filas.
+            function calcularTotal() {
+
+                let total = 0;
+
+                cuerpoProductos.querySelectorAll(".fila-producto")
+                    .forEach(function (fila) {
+
+                        total += calcularSubtotal(fila);
+
+                    });
+
+                totalCompra.textContent = total.toFixed(2);
+            }
+
+            // Actualiza el precio sugerido al seleccionar un producto.
+            function actualizarPrecio(fila) {
+
+                const selector = fila.querySelector(".producto-select");
+                const opcion = selector.options[selector.selectedIndex];
+
+                // Obtiene el precio de compra registrado en el producto.
+                const precio = opcion.getAttribute("data-precio");
+
+                if (precio !== null && precio !== "") {
+
+                    fila.querySelector(".precio-input").value =
+                        parseFloat(precio).toFixed(2);
+
+                }
+
+                calcularTotal();
+            }
+
+            // Actualiza los botones para eliminar filas.
+            function actualizarBotones() {
+
+                const filas = cuerpoProductos.querySelectorAll(".fila-producto");
+
+                filas.forEach(function (fila) {
+
+                    const botonEliminar =
+                        fila.querySelector(".eliminar-producto");
+
+                    // Siempre conserva al menos una fila.
+                    botonEliminar.disabled = filas.length === 1;
+
+                });
+            }
+
+            // Agrega una nueva fila de producto.
+            function agregarFila() {
+
+                const primeraFila =
+                    cuerpoProductos.querySelector(".fila-producto");
+
+                // Clona la primera fila como plantilla.
+                const nuevaFila = primeraFila.cloneNode(true);
+
+                // Limpia los campos de la nueva fila.
+                nuevaFila.querySelector(".producto-select").selectedIndex = 0;
+                nuevaFila.querySelector(".cantidad-input").value = 1;
+                nuevaFila.querySelector(".precio-input").value = "";
+                nuevaFila.querySelector(".subtotal-input").value = "0.00";
+
+                // Agrega la fila a la tabla.
+                cuerpoProductos.appendChild(nuevaFila);
+
+                actualizarBotones();
+                calcularTotal();
+            }
+
+            // Escucha los cambios realizados en los campos.
+            cuerpoProductos.addEventListener("change", function (evento) {
+
+                const fila = evento.target.closest(".fila-producto");
+
+                if (!fila) {
+                    return;
+                }
+
+                // Sugiere el precio de compra al cambiar el producto.
+                if (evento.target.classList.contains("producto-select")) {
+                    actualizarPrecio(fila);
+                }
+
+                calcularTotal();
+            });
+
+            // Recalcula los importes mientras se escriben cantidades o precios.
+            cuerpoProductos.addEventListener("input", function (evento) {
+
+                if (
+                    evento.target.classList.contains("cantidad-input") ||
+                    evento.target.classList.contains("precio-input")
+                ) {
+
+                    calcularTotal();
+
+                }
+
+            });
+
+            // Elimina una fila de producto.
+            cuerpoProductos.addEventListener("click", function (evento) {
+
+                const boton = evento.target.closest(".eliminar-producto");
+
+                if (!boton) {
+                    return;
+                }
+
+                const filas = cuerpoProductos.querySelectorAll(".fila-producto");
+
+                // No permite eliminar la última fila.
+                if (filas.length > 1) {
+
+                    boton.closest(".fila-producto").remove();
+
+                    actualizarBotones();
+                    calcularTotal();
+
+                }
+
+            });
+
+            // Conecta el botón para agregar productos.
+            botonAgregar.addEventListener("click", agregarFila);
+
+            // Valida los datos antes de enviar el formulario.
+            formulario.addEventListener("submit", function (evento) {
+
+                const filas = cuerpoProductos.querySelectorAll(".fila-producto");
+
+                if (filas.length === 0) {
+
+                    evento.preventDefault();
+                    alert("Debes agregar al menos un producto.");
+
+                    return;
+
+                }
+
+                let formularioValido = true;
+                let primerCampoInvalido = null;
+
+                // Comprueba que cada fila tenga datos válidos.
+                filas.forEach(function (fila) {
+
+                    const producto =
+                        fila.querySelector(".producto-select");
+
+                    const cantidad =
+                        fila.querySelector(".cantidad-input");
+
+                    const precio =
+                        fila.querySelector(".precio-input");
+
+                    // Comprueba la selección del producto.
+                    if (!producto.value) {
+                        formularioValido = false;
+                        primerCampoInvalido = primerCampoInvalido || producto;
+                    }
+
+                    // Comprueba que la cantidad sea un entero positivo.
+                    if (
+                        !cantidad.value ||
+                        !Number.isInteger(Number(cantidad.value)) ||
+                        Number(cantidad.value) <= 0
+                    ) {
+                        formularioValido = false;
+                        primerCampoInvalido = primerCampoInvalido || cantidad;
+                    }
+
+                    // Comprueba que el precio sea positivo y válido.
+                    if (
+                        !precio.value ||
+                        !Number.isFinite(Number(precio.value)) ||
+                        Number(precio.value) <= 0
+                    ) {
+                        formularioValido = false;
+                        primerCampoInvalido = primerCampoInvalido || precio;
+                    }
+
+                });
+
+                if (!formularioValido) {
+
+                    evento.preventDefault();
+
+                    alert("Revisa los productos, las cantidades y los precios.");
+
+                    // Lleva al usuario al primer campo que necesita corregir.
+                    if (primerCampoInvalido) {
+                        primerCampoInvalido.focus();
+                    }
+
+                }
+
+            });
+
+            // Inicializa los botones y el total del formulario.
+            actualizarBotones();
+            calcularTotal();
+
+        });
+
+    </script>
+
+</body>
+</html>

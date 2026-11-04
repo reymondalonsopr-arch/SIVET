@@ -1,0 +1,656 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Panel principal')}"></head>
+
+<body>
+
+    <!-- Menú lateral compartido de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <!-- Contenido principal del Dashboard. -->
+    <main class="main-content">
+
+        <!-- Barra superior reutilizable. -->
+        <header th:replace="~{fragments/layout :: topbar('Panel principal')}"></header>
+
+        <div class="container-fluid p-4">
+
+            <!-- Mensaje de bienvenida. -->
+            <div class="mb-4">
+                <h3 class="fw-bold mb-1">Panel principal</h3>
+                <p class="text-muted mb-0">
+                    Resumen general del Sistema de Inventario y Ventas.
+                </p>
+            </div>
+
+            <!-- Indicadores principales. -->
+            <div class="row g-4 mb-4">
+
+                <!-- Total de productos. -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="text-muted mb-1">Productos</p>
+                                    <h3 class="fw-bold mb-0"
+                                        th:text="${totalProductos}">0</h3>
+                                </div>
+
+                                <div class="fs-1 text-primary">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                            </div>
+
+                            <a th:href="@{/productos}"
+                               class="small text-decoration-none">
+                                Ver productos
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total de clientes. -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="text-muted mb-1">Clientes</p>
+                                    <h3 class="fw-bold mb-0"
+                                        th:text="${totalClientes}">0</h3>
+                                </div>
+
+                                <div class="fs-1 text-success">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                            </div>
+
+                            <a th:href="@{/clientes}"
+                               class="small text-decoration-none">
+                                Ver clientes
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total de usuarios: solamente administrador. -->
+                <div class="col-12 col-sm-6 col-xl-3"
+                     sec:authorize="hasRole('ADMIN')">
+
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="text-muted mb-1">Usuarios</p>
+                                    <h3 class="fw-bold mb-0"
+                                        th:text="${totalUsuarios}">0</h3>
+                                </div>
+
+                                <div class="fs-1 text-info">
+                                    <i class="bi bi-person-badge"></i>
+                                </div>
+                            </div>
+
+                            <a th:href="@{/usuarios}"
+                               class="small text-decoration-none">
+                                Ver usuarios
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Productos que necesitan reposición. -->
+                <div class="col-12 col-sm-6 col-xl-3"
+                     sec:authorize="hasAnyRole('ADMIN', 'ALMACENERO')">
+
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="text-muted mb-1">Stock bajo</p>
+                                    <h3 class="fw-bold mb-0 text-danger"
+                                        th:text="${productosStockBajo}">0</h3>
+                                </div>
+
+                                <div class="fs-1 text-danger">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </div>
+                            </div>
+
+                            <a th:href="@{/productos/stock-bajo}"
+                               class="small text-decoration-none">
+                                Revisar existencias
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Indicador de ingresos del mes. -->
+            <div class="row g-4 mb-4"
+                 sec:authorize="hasAnyRole('ADMIN', 'VENDEDOR')">
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <div>
+                                    <p class="text-muted mb-1">Ingresos del mes</p>
+
+                                    <h3 class="fw-bold text-success mb-0">
+                                        S/
+                                        <span th:text="${#numbers.formatDecimal(ingresosMes, 1, 2)}">
+                                            0.00
+                                        </span>
+                                    </h3>
+
+                                    <small class="text-muted">
+                                        Ventas registradas del mes actual
+                                    </small>
+                                </div>
+
+                                <div class="fs-1 text-success">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Estadísticas de ventas. -->
+            <div class="row g-4 mb-4"
+                 sec:authorize="hasAnyRole('ADMIN', 'VENDEDOR')">
+
+                <!-- Gráfico de ventas de los últimos siete días. -->
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm h-100">
+
+                        <div class="card-body p-4">
+
+                            <h5 class="fw-bold mb-1">
+                                <i class="bi bi-graph-up-arrow me-2"></i>
+                                Ventas de los últimos 7 días
+                            </h5>
+
+                            <p class="text-muted small mb-3">
+                                Evolución diaria de los ingresos por ventas.
+                            </p>
+
+                            <div style="position: relative; height: 320px;">
+                                <canvas id="graficoVentasSemana"></canvas>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Gráfico de los cinco productos más vendidos. -->
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm h-100">
+
+                        <div class="card-body p-4">
+
+                            <h5 class="fw-bold mb-1">
+                                <i class="bi bi-trophy me-2"></i>
+                                Productos más vendidos
+                            </h5>
+
+                            <p class="text-muted small mb-3">
+                                Los cinco productos con más unidades vendidas en los últimos 30 días.
+                            </p>
+
+                            <div style="position: relative; height: 320px;">
+                                <canvas id="graficoTopProductos"></canvas>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Listado de productos con stock bajo. -->
+            <div class="card border-0 shadow-sm mb-4"
+                 sec:authorize="hasAnyRole('ADMIN', 'ALMACENERO')">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+                                Productos que necesitan reposición
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Productos activos que alcanzaron su stock mínimo.
+                            </p>
+                        </div>
+
+                        <a th:href="@{/productos/stock-bajo}"
+                           class="btn btn-outline-danger btn-sm">
+                            Ver todos
+                        </a>
+
+                    </div>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle">
+
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-center">Stock actual</th>
+                                    <th class="text-center">Stock mínimo</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                <tr th:each="producto : ${listaStockBajo}">
+
+                                    <td>
+                                        <span class="fw-semibold"
+                                              th:text="${producto.nombre}">
+                                            Producto
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="fw-bold text-danger"
+                                              th:text="${producto.stockActual}">
+                                            0
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center"
+                                        th:text="${producto.stockMinimo}">
+                                        0
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="badge bg-danger">
+                                            Stock bajo
+                                        </span>
+                                    </td>
+
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(listaStockBajo)}">
+                                    <td colspan="4"
+                                        class="text-center text-muted py-4">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        No hay productos que necesiten reposición.
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Últimas ventas registradas. -->
+            <div class="card border-0 shadow-sm mb-4"
+                 sec:authorize="hasAnyRole('ADMIN', 'VENDEDOR')">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                <i class="bi bi-receipt me-2"></i>
+                                Últimas ventas
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Últimas cinco ventas registradas en el sistema.
+                            </p>
+                        </div>
+
+                        <a th:href="@{/ventas}"
+                           class="btn btn-outline-primary btn-sm">
+                            Ver ventas
+                        </a>
+
+                    </div>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle">
+
+                            <thead>
+                                <tr>
+                                    <th>N.º</th>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                <tr th:each="venta : ${ultimasVentas}">
+
+                                    <td th:text="${venta.id}">
+                                        1
+                                    </td>
+
+                                    <td th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy HH:mm')}">
+                                        Fecha
+                                    </td>
+
+                                    <td th:text="${venta.cliente != null ? venta.cliente.nombre : 'Cliente general'}">
+                                        Cliente
+                                    </td>
+
+                                    <td class="text-end fw-semibold">
+                                        S/
+                                        <span th:text="${#numbers.formatDecimal(venta.total, 1, 2)}">
+                                            0.00
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="badge bg-success"
+                                              th:text="${venta.estado}">
+                                            REGISTRADA
+                                        </span>
+                                    </td>
+
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(ultimasVentas)}">
+                                    <td colspan="5"
+                                        class="text-center text-muted py-4">
+                                        Todavía no hay ventas registradas.
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Accesos rápidos según el perfil del usuario. -->
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <h5 class="fw-bold mb-3">Accesos rápidos</h5>
+
+                    <div class="row g-3">
+
+                        <!-- Acceso a productos. -->
+                        <div class="col-12 col-md-6 col-lg-3"
+                             sec:authorize="hasAnyRole('ADMIN', 'ALMACENERO')">
+
+                            <a th:href="@{/productos}"
+                               class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-box-seam me-2"></i>
+                                Productos
+                            </a>
+
+                        </div>
+
+                        <!-- Acceso a categorías. -->
+                        <div class="col-12 col-md-6 col-lg-3"
+                             sec:authorize="hasAnyRole('ADMIN', 'ALMACENERO')">
+
+                            <a th:href="@{/categorias}"
+                               class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-tags me-2"></i>
+                                Categorías
+                            </a>
+
+                        </div>
+
+                        <!-- Acceso a clientes. -->
+                        <div class="col-12 col-md-6 col-lg-3"
+                             sec:authorize="hasAnyRole('ADMIN', 'VENDEDOR')">
+
+                            <a th:href="@{/clientes}"
+                               class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-people me-2"></i>
+                                Clientes
+                            </a>
+
+                        </div>
+
+                        <!-- Acceso a usuarios. -->
+                        <div class="col-12 col-md-6 col-lg-3"
+                             sec:authorize="hasRole('ADMIN')">
+
+                            <a th:href="@{/usuarios}"
+                               class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-person-badge me-2"></i>
+                                Usuarios
+                            </a>
+
+                        </div>
+
+                        <!-- Acceso a ventas. -->
+                        <div class="col-12 col-md-6 col-lg-3"
+                             sec:authorize="hasAnyRole('ADMIN', 'VENDEDOR')">
+
+                            <a th:href="@{/ventas}"
+                               class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-cart3 me-2"></i>
+                                Ventas
+                            </a>
+
+                        </div>
+
+                        <!-- Acceso a compras. -->
+                        <div class="col-12 col-md-6 col-lg-3"
+                             sec:authorize="hasAnyRole('ADMIN', 'ALMACENERO')">
+
+                            <a th:href="@{/compras}"
+                               class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-bag me-2"></i>
+                                Compras
+                            </a>
+
+                        </div>
+
+                        <!-- Acceso a movimientos. -->
+                        <div class="col-12 col-md-6 col-lg-3"
+                             sec:authorize="hasAnyRole('ADMIN', 'ALMACENERO')">
+
+                            <a th:href="@{/movimientos}"
+                               class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-boxes me-2"></i>
+                                Movimientos
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <!-- Librería Chart.js para los gráficos. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Configuración de los gráficos del Dashboard. -->
+    <script th:inline="javascript">
+
+        // Espera a que la página esté completamente cargada.
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Recupera los datos reales enviados por el controlador.
+            const dias = /*[[${diasGrafico}]]*/ [];
+            const ventas = /*[[${ventasGrafico}]]*/ [];
+            const nombresProductos = /*[[${nombresProductos}]]*/ [];
+            const cantidadesProductos = /*[[${cantidadesProductos}]]*/ [];
+
+            // Obtiene el elemento del gráfico semanal.
+            const elementoVentas = document.getElementById(
+                "graficoVentasSemana"
+            );
+
+            // Construye el gráfico de ventas de los últimos siete días.
+            if (elementoVentas) {
+
+                new Chart(elementoVentas, {
+
+                    // Gráfico de líneas.
+                    type: "line",
+
+                    data: {
+                        labels: dias,
+
+                        datasets: [
+                            {
+                                label: "Ventas (S/)",
+                                data: ventas,
+                                borderColor: "rgb(25, 135, 84)",
+                                backgroundColor: "rgba(25, 135, 84, 0.15)",
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 5
+                            }
+                        ]
+                    },
+
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: "Ingresos en soles (S/)"
+                                }
+                            },
+
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Días"
+                                }
+                            }
+                        },
+
+                        plugins: {
+                            legend: {
+                                position: "top"
+                            }
+                        }
+                    }
+
+                });
+
+            }
+
+            // Obtiene el elemento del gráfico de productos.
+            const elementoProductos = document.getElementById(
+                "graficoTopProductos"
+            );
+
+            // Construye el gráfico de los cinco productos más vendidos.
+            if (elementoProductos) {
+
+                new Chart(elementoProductos, {
+
+                    // Gráfico de barras horizontales.
+                    type: "bar",
+
+                    data: {
+                        labels: nombresProductos,
+
+                        datasets: [
+                            {
+                                label: "Unidades vendidas",
+                                data: cantidadesProductos,
+                                backgroundColor: "rgba(13, 110, 253, 0.75)",
+                                borderColor: "rgb(13, 110, 253)",
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+
+                    options: {
+                        indexAxis: "y",
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                },
+
+                                title: {
+                                    display: true,
+                                    text: "Unidades vendidas"
+                                }
+                            }
+                        },
+
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+
+                });
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>

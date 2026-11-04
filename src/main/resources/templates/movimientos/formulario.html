@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Registrar movimiento')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Registrar movimiento')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado. -->
+            <div class="mb-4">
+                <h3 class="fw-bold mb-1">Registrar movimiento</h3>
+
+                <p class="text-muted mb-0">
+                    Registra una entrada o salida de productos del inventario.
+                </p>
+            </div>
+
+            <!-- Mensaje de error enviado por el controlador. -->
+            <div th:if="${mensajeError}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span th:text="${mensajeError}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Formulario de movimientos. -->
+            <div class="sivet-card">
+
+                <form th:action="@{/movimientos/guardar}"
+                      method="post"
+                      id="formularioMovimiento">
+
+                    <div class="row g-3">
+
+                        <!-- Selección obligatoria del producto. -->
+                        <div class="col-12">
+
+                            <label for="productoId" class="form-label">
+                                Producto *
+                            </label>
+
+                            <select id="productoId"
+                                    name="productoId"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+                                    Selecciona un producto
+                                </option>
+
+                                <!-- Carga los productos activos. -->
+                                <option th:each="producto : ${productos}"
+                                        th:value="${producto.id}"
+                                        th:text="${producto.codigo + ' - ' + producto.nombre + ' (Stock: ' + producto.stockActual + ')'}">
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- Tipo de movimiento. -->
+                        <div class="col-12 col-md-6">
+
+                            <label for="tipo" class="form-label">
+                                Tipo de movimiento *
+                            </label>
+
+                            <select id="tipo"
+                                    name="tipo"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+                                    Selecciona el tipo
+                                </option>
+
+                                <option value="ENTRADA">
+                                    Entrada de productos
+                                </option>
+
+                                <option value="SALIDA">
+                                    Salida de productos
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <!-- Cantidad. -->
+                        <div class="col-12 col-md-6">
+
+                            <label for="cantidad" class="form-label">
+                                Cantidad *
+                            </label>
+
+                            <input type="number"
+                                   id="cantidad"
+                                   name="cantidad"
+                                   class="form-control"
+                                   min="1"
+                                   max="1000000"
+                                   step="1"
+                                   placeholder="Ingrese la cantidad"
+                                   required>
+
+                        </div>
+
+                        <!-- Motivo del movimiento. -->
+                        <div class="col-12">
+
+                            <label for="motivo" class="form-label">
+                                Motivo del movimiento *
+                            </label>
+
+                            <textarea id="motivo"
+                                      name="motivo"
+                                      class="form-control"
+                                      rows="3"
+                                      minlength="5"
+                                      maxlength="250"
+                                      placeholder="Describe por qué se realiza este movimiento"
+                                      required></textarea>
+
+                            <small class="text-muted">
+                                Escribe un motivo de entre 5 y 250 caracteres.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Información del funcionamiento. -->
+                    <div class="alert alert-info mt-4 mb-0">
+
+                        <i class="bi bi-info-circle me-2"></i>
+
+                        El sistema actualizará automáticamente el stock
+                        del producto y guardará el movimiento en el historial.
+
+                    </div>
+
+                    <!-- Botones de acción. -->
+                    <div class="d-flex justify-content-end flex-wrap gap-2 mt-4">
+
+                        <a th:href="@{/movimientos}"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-x-circle me-1"></i>
+                            Cancelar
+
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-save me-1"></i>
+                            Registrar movimiento
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

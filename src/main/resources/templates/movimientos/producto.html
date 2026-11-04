@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Historial del producto')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Historial del producto')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado y navegación. -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Historial del producto</h3>
+
+                    <p class="text-muted mb-0">
+                        Consulta todas las entradas y salidas registradas.
+                    </p>
+                </div>
+
+                <a th:href="@{/movimientos}"
+                   class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Volver a movimientos
+
+                </a>
+
+            </div>
+
+            <!-- Información del producto. -->
+            <div class="sivet-card mb-4">
+
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-box-seam me-2"></i>
+                    Información del producto
+                </h5>
+
+                <div class="row g-3">
+
+                    <!-- Código del producto. -->
+                    <div class="col-12 col-md-4">
+
+                        <label class="text-muted small d-block">
+                            Código
+                        </label>
+
+                        <p class="fw-semibold mb-0"
+                           th:text="${producto.codigo}">
+                        </p>
+
+                    </div>
+
+                    <!-- Nombre del producto. -->
+                    <div class="col-12 col-md-4">
+
+                        <label class="text-muted small d-block">
+                            Nombre del producto
+                        </label>
+
+                        <p class="fw-semibold mb-0"
+                           th:text="${producto.nombre}">
+                        </p>
+
+                    </div>
+
+                    <!-- Stock actual. -->
+                    <div class="col-12 col-md-4">
+
+                        <label class="text-muted small d-block">
+                            Stock actual
+                        </label>
+
+                        <h4 class="fw-bold text-primary mb-0"
+                            th:text="${producto.stockActual}">
+                        </h4>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Historial de movimientos del producto. -->
+            <div class="sivet-card">
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Historial de movimientos
+                    </h5>
+
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(movimientos)} + ' movimientos'">
+                        0 movimientos
+                    </span>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Cantidad</th>
+                                <th>Motivo</th>
+                                <th>Compra relacionada</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorre los movimientos del producto. -->
+                            <tr th:each="movimiento : ${movimientos}">
+
+                                <!-- Identificador. -->
+                                <td th:text="${movimiento.id}">
+                                    1
+                                </td>
+
+                                <!-- Fecha del movimiento. -->
+                                <td class="text-nowrap"
+                                    th:text="${#temporals.format(movimiento.fecha, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2026 10:00
+                                </td>
+
+                                <!-- Tipo de movimiento. -->
+                                <td>
+
+                                    <span th:if="${movimiento.tipo == 'ENTRADA'}"
+                                          class="badge text-bg-success">
+
+                                        <i class="bi bi-box-arrow-in-down me-1"></i>
+                                        Entrada
+
+                                    </span>
+
+                                    <span th:if="${movimiento.tipo == 'SALIDA'}"
+                                          class="badge text-bg-danger">
+
+                                        <i class="bi bi-box-arrow-up me-1"></i>
+                                        Salida
+
+                                    </span>
+
+                                </td>
+
+                                <!-- Cantidad registrada. -->
+                                <td class="fw-semibold"
+                                    th:text="${movimiento.cantidad}">
+                                    1
+                                </td>
+
+                                <!-- Motivo del movimiento. -->
+                                <td th:text="${movimiento.motivo}">
+                                    Motivo
+                                </td>
+
+                                <!-- Compra relacionada, si existe. -->
+                                <td>
+
+                                    <span th:if="${movimiento.compra != null}"
+                                          class="badge text-bg-light"
+                                          th:text="${'COM-' + movimiento.compra.id}">
+                                        COM-1
+                                    </span>
+
+                                    <span th:unless="${movimiento.compra != null}"
+                                          class="text-muted">
+                                        No aplica
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen movimientos. -->
+                            <tr th:if="${#lists.isEmpty(movimientos)}">
+
+                                <td colspan="6"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-clock-history display-5 text-secondary"></i>
+
+                                    <p class="fw-semibold mt-3 mb-1">
+                                        Sin movimientos registrados
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Este producto todavía no tiene entradas ni salidas en su historial.
+                                    </small>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

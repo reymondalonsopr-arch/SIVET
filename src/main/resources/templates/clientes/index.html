@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Gestión de clientes')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Gestión de clientes')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado del módulo. -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Gestión de clientes</h3>
+
+                    <p class="text-muted mb-0">
+                        Administra la información de tus clientes.
+                    </p>
+                </div>
+
+                <!-- Acceso al registro de clientes. -->
+                <a th:href="@{/clientes/nuevo}"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-person-plus me-2"></i>
+                    Nuevo cliente
+
+                </a>
+
+            </div>
+
+            <!-- Mensaje personalizado de éxito o información. -->
+            <div th:if="${mensaje}"
+                 class="alert alert-success alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-check-circle me-2"></i>
+
+                <span th:text="${mensaje}">
+                    Operación realizada correctamente.
+                </span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Mensaje de error. -->
+            <div th:if="${error}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                <span th:text="${error}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Panel de clientes registrados. -->
+            <div class="sivet-card">
+
+                <!-- Encabezado de la tabla. -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>
+                        Clientes registrados
+                    </h5>
+
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(clientes)} + ' clientes'">
+                        0 clientes
+                    </span>
+
+                </div>
+
+                <!-- Tabla de clientes. -->
+                <div class="table-container">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Documento</th>
+                                <th>Teléfono</th>
+                                <th>Correo</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorremos los clientes enviados por el controlador. -->
+                            <tr th:each="cliente : ${clientes}">
+
+                                <td th:text="${cliente.id}">
+                                    1
+                                </td>
+
+                                <td class="fw-semibold"
+                                    th:text="${cliente.nombre}">
+                                    Nombre del cliente
+                                </td>
+
+                                <td th:text="${cliente.numeroDocumento ?: '-'}">
+                                    -
+                                </td>
+
+                                <td th:text="${cliente.telefono ?: '-'}">
+                                    -
+                                </td>
+
+                                <td th:text="${cliente.correo ?: '-'}">
+                                    -
+                                </td>
+
+                                <!-- Estado del cliente. -->
+                                <td>
+
+                                    <span th:if="${cliente.activo}"
+                                          class="badge text-bg-success">
+                                        Activo
+                                    </span>
+
+                                    <span th:unless="${cliente.activo}"
+                                          class="badge text-bg-danger">
+                                        Inactivo
+                                    </span>
+
+                                </td>
+
+                                <!-- Acciones disponibles. -->
+                                <td class="text-center">
+
+                                    <div class="d-flex justify-content-center gap-2">
+
+                                        <!-- Editar cliente. -->
+                                        <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Editar cliente">
+
+                                            <i class="bi bi-pencil-square"></i>
+
+                                        </a>
+
+                                        <!-- Cambiar estado del cliente. -->
+                                        <form th:action="@{/clientes/cambiar-estado/{id}(id=${cliente.id})}"
+                                              method="post">
+
+                                            <!-- Invertimos el estado actual. -->
+                                            <input type="hidden"
+                                                   name="activo"
+                                                   th:value="${!cliente.activo}">
+
+                                            <button type="submit"
+                                                    class="btn btn-sm"
+                                                    th:classappend="${cliente.activo} ? ' btn-outline-danger' : ' btn-outline-success'"
+                                                    th:title="${cliente.activo} ? 'Desactivar cliente' : 'Activar cliente'">
+
+                                                <i th:class="${cliente.activo} ? 'bi bi-person-x' : 'bi bi-person-check'"></i>
+
+                                            </button>
+
+                                        </form>
+
+                                        <!-- Eliminar cliente si no tiene ventas asociadas. -->
+                                        <form th:action="@{/clientes/eliminar/{id}(id=${cliente.id})}"
+                                              method="post"
+                                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer.');">
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Eliminar cliente">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen clientes. -->
+                            <tr th:if="${#lists.isEmpty(clientes)}">
+
+                                <td colspan="7"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-people display-5 text-secondary"></i>
+
+                                    <p class="mt-3 mb-1 fw-semibold">
+                                        No hay clientes registrados.
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Utiliza el botón Nuevo cliente para comenzar.
+                                    </small>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

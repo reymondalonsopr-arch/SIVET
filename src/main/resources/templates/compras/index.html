@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Gestión de compras')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Gestión de compras')}"></header>
+
+        <section class="page-content">
+
+            <!-- Encabezado y botón para registrar compras. -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">Gestión de compras</h3>
+
+                    <p class="text-muted mb-0">
+                        Registra y consulta las compras realizadas a tus proveedores.
+                    </p>
+                </div>
+
+                <!-- Acceso al formulario de compras. -->
+                <a th:href="@{/compras/nuevo}"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Nueva compra
+
+                </a>
+
+            </div>
+
+            <!-- Mensaje de operación exitosa. -->
+            <div th:if="${mensajeExito}"
+                 class="alert alert-success alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-check-circle me-2"></i>
+
+                <span th:text="${mensajeExito}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Mensaje de error. -->
+            <div th:if="${mensajeError}"
+                 class="alert alert-danger alert-dismissible fade show"
+                 role="alert">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                <span th:text="${mensajeError}"></span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Cerrar">
+                </button>
+
+            </div>
+
+            <!-- Panel del historial de compras. -->
+            <div class="sivet-card">
+
+                <!-- Encabezado de la tabla. -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-cart3 me-2"></i>
+                        Historial de compras
+                    </h5>
+
+                    <span class="badge text-bg-primary"
+                          th:text="${#lists.size(compras)} + ' compras'">
+                        0 compras
+                    </span>
+
+                </div>
+
+                <!-- Tabla de compras. -->
+                <div class="table-container">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Proveedor</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- Recorremos las compras registradas. -->
+                            <tr th:each="compra : ${compras}">
+
+                                <!-- Identificador de la compra. -->
+                                <td class="fw-semibold"
+                                    th:text="${'COM-' + compra.id}">
+                                    COM-1
+                                </td>
+
+                                <!-- Nombre del proveedor. -->
+                                <td th:text="${compra.proveedor.nombre}">
+                                    Proveedor
+                                </td>
+
+                                <!-- Fecha de registro. -->
+                                <td class="text-nowrap"
+                                    th:text="${#temporals.format(compra.fecha, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2026 10:00
+                                </td>
+
+                                <!-- Importe total. -->
+                                <td class="fw-semibold text-nowrap">
+                                    S/
+                                    <span th:text="${#numbers.formatDecimal(compra.total, 1, 2)}">
+                                        0.00
+                                    </span>
+                                </td>
+
+                                <!-- Estado de la compra. -->
+                                <td>
+
+                                    <span th:if="${compra.estado == 'REGISTRADA'}"
+                                          class="badge text-bg-success">
+                                        Registrada
+                                    </span>
+
+                                    <span th:if="${compra.estado == 'ANULADA'}"
+                                          class="badge text-bg-secondary">
+                                        Anulada
+                                    </span>
+
+                                    <span th:if="${compra.estado != 'REGISTRADA' and compra.estado != 'ANULADA'}"
+                                          class="badge text-bg-secondary"
+                                          th:text="${compra.estado}">
+                                        Estado
+                                    </span>
+
+                                </td>
+
+                                <!-- Acciones disponibles. -->
+                                <td class="text-center">
+
+                                    <!-- Consultar detalle de compra. -->
+                                    <a th:href="@{/compras/detalle/{id}(id=${compra.id})}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Ver detalles">
+
+                                        <i class="bi bi-eye"></i>
+
+                                    </a>
+
+                                    <!-- Anular compra solamente si está registrada. -->
+                                    <form th:if="${compra.estado == 'REGISTRADA'}"
+                                          th:action="@{/compras/anular/{id}(id=${compra.id})}"
+                                          method="post"
+                                          class="d-inline">
+
+                                        <!-- Protección CSRF de Spring Security. -->
+                                        <input type="hidden"
+                                               th:name="${_csrf.parameterName}"
+                                               th:value="${_csrf.token}" />
+
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Anular compra"
+                                                onclick="return confirm('¿Estás seguro de que deseas anular esta compra? Se revertirá su stock si hay unidades suficientes.');">
+
+                                            <i class="bi bi-x-circle"></i>
+
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                            <!-- Mensaje cuando no existen compras. -->
+                            <tr th:if="${#lists.isEmpty(compras)}">
+
+                                <td colspan="6"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-cart-x display-5 text-secondary"></i>
+
+                                    <p class="mt-3 mb-1 fw-semibold">
+                                        Todavía no hay compras registradas.
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Utiliza el botón Nueva compra para comenzar.
+                                    </small>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

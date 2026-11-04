@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Formulario de categorías')}"></head>
+
+<body>
+
+    <!-- Menú lateral reutilizable de SIVET. -->
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+
+    <main class="main-content">
+
+        <!-- Barra superior compartida. -->
+        <header th:replace="~{fragments/layout :: topbar('Formulario de categorías')}"></header>
+
+        <section class="page-content">
+
+            <!-- Título dinámico según la operación. -->
+            <div class="mb-4">
+
+                <h3 class="fw-bold mb-1"
+                    th:text="${categoria.id == null ? 'Registrar categoría' : 'Editar categoría'}">
+                    Registrar categoría
+                </h3>
+
+                <p class="text-muted mb-0">
+                    Completa la información de la categoría.
+                </p>
+
+            </div>
+
+            <!-- Panel del formulario. -->
+            <div class="sivet-card">
+
+                <!-- Mensaje de error del servidor. -->
+                <div th:if="${mensajeError}"
+                     class="alert alert-danger alert-dismissible fade show"
+                     role="alert">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    <span th:text="${mensajeError}"></span>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Cerrar">
+                    </button>
+
+                </div>
+
+                <!-- Formulario de registro o actualización. -->
+                <form th:action="${categoria.id == null}
+                              ? @{/categorias/guardar}
+                              : @{/categorias/actualizar/{id}(id=${categoria.id})}"
+                      th:object="${categoria}"
+                      method="post">
+
+                    <div class="row g-3">
+
+                        <!-- Nombre de la categoría. -->
+                        <div class="col-12">
+
+                            <label for="nombre"
+                                   class="form-label fw-semibold">
+                                Nombre de la categoría *
+                            </label>
+
+                            <input type="text"
+                                   id="nombre"
+                                   th:field="*{nombre}"
+                                   class="form-control"
+                                   placeholder="Ejemplo: Bebidas, Alimentos, Limpieza"
+                                   minlength="2"
+                                   maxlength="80"
+                                   required>
+
+                            <small class="text-muted">
+                                Escribe un nombre claro para identificar la categoría.
+                            </small>
+
+                        </div>
+
+                        <!-- Descripción de la categoría. -->
+                        <div class="col-12">
+
+                            <label for="descripcion"
+                                   class="form-label fw-semibold">
+                                Descripción
+                            </label>
+
+                            <textarea id="descripcion"
+                                      th:field="*{descripcion}"
+                                      class="form-control"
+                                      rows="4"
+                                      maxlength="200"
+                                      placeholder="Describe brevemente esta categoría">
+                            </textarea>
+
+                            <small class="text-muted">
+                                Campo opcional. Máximo 200 caracteres.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Separador visual. -->
+                    <hr class="my-4">
+
+                    <!-- Acciones del formulario. -->
+                    <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                        <a th:href="@{/categorias}"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Cancelar
+
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-save me-1"></i>
+
+                            <span th:text="${categoria.id == null ? 'Registrar categoría' : 'Guardar cambios'}">
+                                Guardar categoría
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Scripts compartidos de SIVET. -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

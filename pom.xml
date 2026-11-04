@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!-- Versión del modelo de Maven. -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Configuración principal de Spring Boot. -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.2</version>
+        <relativePath/>
+    </parent>
+
+    <!-- Datos generales del proyecto. -->
+    <groupId>com.sivet</groupId>
+    <artifactId>sivet</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>SIVET</name>
+    <description>Sistema de Inventario y Ventas</description>
+
+    <!-- Versiones utilizadas por el proyecto. -->
+    <properties>
+        <java.version>26</java.version>
+        <lombok.version>1.18.48</lombok.version>
+        <poi.version>5.4.1</poi.version>
+        <jjwt.version>0.12.6</jjwt.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    </properties>
+
+    <!-- Dependencias necesarias para SIVET. -->
+    <dependencies>
+
+        <!-- Persistencia y conexión con la base de datos. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Seguridad y autenticación de usuarios. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Soporte para autenticación JWT en la API REST. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- Biblioteca principal para trabajar con JWT. -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+
+        <!-- Implementación de JJWT utilizada en tiempo de ejecución. -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Integración de JJWT con Jackson para JSON. -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Motor de plantillas Thymeleaf. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- Integración de Thymeleaf con Spring Security. -->
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
+
+        <!-- Validación de datos y formularios. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Controladores web y API REST. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <!-- Conector de PostgreSQL. -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Biblioteca para generar archivos Excel XLSX. -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+        <!-- Lombok genera getters, setters y otros métodos. -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Recarga automática durante el desarrollo. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Herramientas para pruebas de persistencia. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Herramientas para probar la seguridad. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Herramientas para probar Thymeleaf. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Herramientas para probar validaciones. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Herramientas para probar controladores web. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!-- Configuración de compilación. -->
+    <build>
+        <plugins>
+
+            <!-- Permite ejecutar la aplicación Spring Boot. -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Configura el compilador y el procesador de Lombok. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <!-- Versión de Java utilizada para compilar. -->
+                    <release>${java.version}</release>
+
+                    <!-- Habilita explícitamente el procesamiento de anotaciones. -->
+                    <proc>full</proc>
+
+                    <!-- Indica a Maven dónde encontrar el procesador de Lombok. -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
