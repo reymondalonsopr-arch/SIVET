@@ -1,4 +1,3 @@
-
 package com.sivet.service;
 
 import com.sivet.model.Rol;
@@ -28,6 +27,14 @@ public class UsuarioService {
     // Roles oficiales permitidos en el sistema.
     private static final Set<String> ROLES_PERMITIDOS =
             Set.of("ADMIN", "VENDEDOR", "ALMACENERO");
+
+    // Límites de longitud definidos para los datos del usuario.
+    private static final int NOMBRE_COMPLETO_MIN = 2;
+    private static final int NOMBRE_COMPLETO_MAX = 120;
+    private static final int NOMBRE_USUARIO_MIN = 3;
+    private static final int NOMBRE_USUARIO_MAX = 50;
+    private static final int PASSWORD_MIN = 6;
+    private static final int PASSWORD_MAX = 100;
 
     // Repositorio para acceder a los usuarios.
     private final UsuarioRepository usuarioRepository;
@@ -65,9 +72,10 @@ public class UsuarioService {
             String password,
             Long rolId) {
 
-        // Validamos y limpiamos los datos recibidos.
+        // Validamos los datos recibidos antes de guardarlos.
         validarDatos(nombreCompleto, nombreUsuario, password);
 
+        // Eliminamos espacios sobrantes en los campos de texto.
         nombreCompleto = nombreCompleto.trim();
         nombreUsuario = nombreUsuario.trim();
 
@@ -148,6 +156,7 @@ public class UsuarioService {
         // Validamos los datos que se actualizarán.
         validarDatos(nombreCompleto, nombreUsuario, null);
 
+        // Eliminamos espacios sobrantes en los campos de texto.
         nombreCompleto = nombreCompleto.trim();
         nombreUsuario = nombreUsuario.trim();
 
@@ -179,7 +188,12 @@ public class UsuarioService {
         // Buscamos el usuario que cambiará de estado.
         Usuario usuario = buscarPorId(id);
 
-        // Actualizamos el estado de su cuenta.
+        // Evitamos desactivar al último administrador activo.
+        if (!activo && esAdministradorActivo(usuario)) {
+            validarQueNoSeaUltimoAdministrador(usuario);
+        }
+
+        // Actualizamos el estado de la cuenta.
         usuario.setActivo(activo);
 
         return usuarioRepository.save(usuario);
@@ -193,8 +207,42 @@ public class UsuarioService {
         // Buscamos el usuario para comprobar que exista.
         Usuario usuario = buscarPorId(id);
 
+        // Evitamos eliminar al último administrador activo.
+        if (esAdministradorActivo(usuario)) {
+            validarQueNoSeaUltimoAdministrador(usuario);
+        }
+
         // Eliminamos el usuario de la base de datos.
         usuarioRepository.delete(usuario);
+    }
+
+    /**
+     * Comprueba si el usuario es un administrador activo.
+     */
+    private boolean esAdministradorActivo(Usuario usuario) {
+
+        return usuario.isActivo()
+                && usuario.getRol() != null
+                && "ADMIN".equals(usuario.getRol().getNombre());
+    }
+
+    /**
+     * Impide desactivar o eliminar al último administrador activo.
+     */
+    private void validarQueNoSeaUltimoAdministrador(Usuario usuario) {
+
+        long administradoresActivos = usuarioRepository.findAll()
+                .stream()
+                .filter(Usuario::isActivo)
+                .filter(u -> u.getRol() != null)
+                .filter(u -> "ADMIN".equals(u.getRol().getNombre()))
+                .count();
+
+        if (administradoresActivos <= 1) {
+            throw new IllegalArgumentException(
+                    "No se puede desactivar ni eliminar al último administrador activo."
+            );
+        }
     }
 
     /**
@@ -226,32 +274,63 @@ public class UsuarioService {
     }
 
     /**
-     * Comprueba que los datos obligatorios sean válidos.
+     * Comprueba que los datos obligatorios y sus longitudes sean válidos.
      */
     private void validarDatos(
             String nombreCompleto,
             String nombreUsuario,
             String password) {
 
-        // Validamos el nombre completo.
+        // Validamos que el nombre completo no esté vacío.
         if (nombreCompleto == null || nombreCompleto.isBlank()) {
             throw new IllegalArgumentException(
                     mensajeService.obtenerMensaje("usuario.nombre.completo.obligatorio")
             );
         }
 
-        // Validamos el nombre de usuario.
+        // Validamos la longitud del nombre completo después de quitar espacios.
+        int longitudNombre = nombreCompleto.trim().length();
+
+        if (longitudNombre < NOMBRE_COMPLETO_MIN
+                || longitudNombre > NOMBRE_COMPLETO_MAX) {
+            throw new IllegalArgumentException(
+                    "El nombre completo debe tener entre 2 y 120 caracteres."
+            );
+        }
+
+        // Validamos que el nombre de usuario no esté vacío.
         if (nombreUsuario == null || nombreUsuario.isBlank()) {
             throw new IllegalArgumentException(
                     mensajeService.obtenerMensaje("usuario.nombre.usuario.obligatorio")
             );
         }
 
-        // La contraseña solamente es obligatoria al registrar.
-        if (password != null && password.isBlank()) {
+        // Validamos la longitud del nombre de usuario.
+        int longitudUsuario = nombreUsuario.trim().length();
+
+        if (longitudUsuario < NOMBRE_USUARIO_MIN
+                || longitudUsuario > NOMBRE_USUARIO_MAX) {
             throw new IllegalArgumentException(
-                    mensajeService.obtenerMensaje("usuario.password.obligatorio")
+                    "El nombre de usuario debe tener entre 3 y 50 caracteres."
             );
+        }
+
+        // La contraseña solamente es obligatoria al registrar.
+        if (password != null) {
+
+            if (password.isBlank()) {
+                throw new IllegalArgumentException(
+                        mensajeService.obtenerMensaje("usuario.password.obligatorio")
+                );
+            }
+
+            // Validamos la longitud sin modificar la contraseña.
+            if (password.length() < PASSWORD_MIN
+                    || password.length() > PASSWORD_MAX) {
+                throw new IllegalArgumentException(
+                        "La contraseña debe tener entre 6 y 100 caracteres."
+                );
+            }
         }
     }
 }

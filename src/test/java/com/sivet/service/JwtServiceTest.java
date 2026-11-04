@@ -1,5 +1,8 @@
 package com.sivet.service;
 
+import com.sivet.model.Rol;
+import com.sivet.model.Usuario;
+import com.sivet.security.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -13,7 +16,7 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Pruebas unitarias para JwtService.
+ * Pruebas unitarias para el servicio JWT.
  */
 class JwtServiceTest {
 
@@ -21,20 +24,26 @@ class JwtServiceTest {
             "EstaEsUnaClaveSecretaDePruebaConMasDe32Bytes";
 
     private JwtService jwtService;
+    private Usuario usuario;
 
     @BeforeEach
     void setUp() {
         // Creamos el servicio con una clave segura para las pruebas.
         jwtService = new JwtService(SECRET);
+
+        // Preparamos un usuario con rol para generar el token.
+        Rol rol = new Rol();
+        rol.setNombre("ADMIN");
+
+        usuario = new Usuario();
+        usuario.setNombreUsuario("admin");
+        usuario.setRol(rol);
     }
 
     @Test
     void generarToken_debeCrearTokenValido() {
-        // Arrange
-        String nombreUsuario = "admin";
-
         // Act
-        String token = jwtService.generarToken(nombreUsuario);
+        String token = jwtService.generarToken(usuario);
 
         // Assert
         assertNotNull(token);
@@ -47,20 +56,19 @@ class JwtServiceTest {
     @Test
     void obtenerUsuario_debeRetornarNombreUsuarioDelToken() {
         // Arrange
-        String nombreUsuario = "admin";
-        String token = jwtService.generarToken(nombreUsuario);
+        String token = jwtService.generarToken(usuario);
 
         // Act
         String usuarioObtenido = jwtService.obtenerUsuario(token);
 
         // Assert
-        assertEquals(nombreUsuario, usuarioObtenido);
+        assertEquals("admin", usuarioObtenido);
     }
 
     @Test
-    void generarToken_debeIncluirFechaDeEmisionYExpiracion() {
+    void generarToken_debeIncluirFechaEmisionExpiracionYRol() {
         // Arrange
-        String token = jwtService.generarToken("admin");
+        String token = jwtService.generarToken(usuario);
         SecretKey secretKey = Keys.hmacShaKeyFor(
                 SECRET.getBytes(StandardCharsets.UTF_8)
         );
@@ -75,6 +83,7 @@ class JwtServiceTest {
         // Assert
         assertNotNull(claims.getIssuedAt());
         assertNotNull(claims.getExpiration());
+        assertEquals("ADMIN", claims.get("rol", String.class));
 
         // El token debe expirar después de su emisión.
         assertTrue(claims.getExpiration().after(claims.getIssuedAt()));

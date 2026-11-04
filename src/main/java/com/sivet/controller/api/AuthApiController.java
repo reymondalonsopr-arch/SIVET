@@ -1,8 +1,11 @@
 package com.sivet.controller.api;
 
-import com.sivet.service.JwtService;
+import com.sivet.model.Usuario;
+import com.sivet.security.JwtService;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,9 +26,13 @@ public class AuthApiController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
+    /**
+     * Inyección de dependencias mediante constructor.
+     */
     public AuthApiController(
             AuthenticationManager authenticationManager,
             JwtService jwtService) {
+
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
     }
@@ -34,7 +41,9 @@ public class AuthApiController {
      * Autentica al usuario y devuelve un token JWT.
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(
+            @Valid @RequestBody LoginRequest request) {
+
         try {
             // Validamos las credenciales con Spring Security.
             Authentication autenticacion =
@@ -45,10 +54,11 @@ public class AuthApiController {
                             )
                     );
 
-            // Generamos el token para el usuario autenticado.
-            String token = jwtService.generarToken(
-                    autenticacion.getName()
-            );
+            // Recuperamos al usuario autenticado.
+            Usuario usuario = (Usuario) autenticacion.getPrincipal();
+
+            // Generamos el token incluyendo el rol del usuario.
+            String token = jwtService.generarToken(usuario);
 
             // Devolvemos el token al cliente.
             return ResponseEntity.ok(

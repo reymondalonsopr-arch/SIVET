@@ -1,8 +1,8 @@
 package com.sivet.controller.web;
 
+import com.sivet.model.Rol;
 import com.sivet.model.Usuario;
 import com.sivet.repository.RolRepository;
-import com.sivet.service.MensajeService;
 import com.sivet.service.UsuarioService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -20,7 +20,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-    private final MensajeService mensajeService;
     private final RolRepository rolRepository;
 
     /**
@@ -28,11 +27,9 @@ public class UsuarioController {
      */
     public UsuarioController(
             UsuarioService usuarioService,
-            MensajeService mensajeService,
             RolRepository rolRepository) {
 
         this.usuarioService = usuarioService;
-        this.mensajeService = mensajeService;
         this.rolRepository = rolRepository;
     }
 
@@ -47,10 +44,18 @@ public class UsuarioController {
 
     /**
      * Muestra el formulario para registrar un usuario.
+     *
+     * Si viene de un error de validación, conserva los datos enviados
+     * mediante los atributos flash.
      */
     @GetMapping("/nuevo")
     public String mostrarFormularioRegistro(Model model) {
-        model.addAttribute("usuario", new Usuario());
+
+        // Solo creamos un usuario nuevo si no viene uno desde un redirect.
+        if (!model.containsAttribute("usuario")) {
+            model.addAttribute("usuario", new Usuario());
+        }
+
         model.addAttribute("roles", rolRepository.findAll());
         model.addAttribute("modoEdicion", false);
 
@@ -65,7 +70,7 @@ public class UsuarioController {
             @RequestParam String nombreCompleto,
             @RequestParam String nombreUsuario,
             @RequestParam String password,
-            @RequestParam Long rolId,
+            @RequestParam(required = false) Long rolId,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -84,7 +89,24 @@ public class UsuarioController {
             return "redirect:/usuarios";
 
         } catch (IllegalArgumentException | EntityNotFoundException e) {
+
+            // Conservamos los datos ingresados, excepto la contraseña.
+            Usuario usuarioFormulario = new Usuario();
+            usuarioFormulario.setNombreCompleto(nombreCompleto);
+            usuarioFormulario.setNombreUsuario(nombreUsuario);
+
+            // Conservamos el rol seleccionado si todavía existe.
+            if (rolId != null) {
+                rolRepository.findById(rolId)
+                        .ifPresent(usuarioFormulario::setRol);
+            }
+
+            redirectAttributes.addFlashAttribute(
+                    "usuario",
+                    usuarioFormulario
+            );
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+
             return "redirect:/usuarios/nuevo";
         }
     }
@@ -99,7 +121,11 @@ public class UsuarioController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            model.addAttribute("usuario", usuarioService.buscarPorId(id));
+            // Si no hay datos flash, cargamos el usuario desde la base de datos.
+            if (!model.containsAttribute("usuario")) {
+                model.addAttribute("usuario", usuarioService.buscarPorId(id));
+            }
+
             model.addAttribute("roles", rolRepository.findAll());
             model.addAttribute("modoEdicion", true);
 
@@ -119,7 +145,7 @@ public class UsuarioController {
             @PathVariable Long id,
             @RequestParam String nombreCompleto,
             @RequestParam String nombreUsuario,
-            @RequestParam Long rolId,
+            @RequestParam(required = false) Long rolId,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -138,7 +164,25 @@ public class UsuarioController {
             return "redirect:/usuarios";
 
         } catch (IllegalArgumentException | EntityNotFoundException e) {
+
+            // Conservamos los datos enviados para que puedan corregirse.
+            Usuario usuarioFormulario = new Usuario();
+            usuarioFormulario.setId(id);
+            usuarioFormulario.setNombreCompleto(nombreCompleto);
+            usuarioFormulario.setNombreUsuario(nombreUsuario);
+
+            // Conservamos el rol seleccionado si todavía existe.
+            if (rolId != null) {
+                rolRepository.findById(rolId)
+                        .ifPresent(usuarioFormulario::setRol);
+            }
+
+            redirectAttributes.addFlashAttribute(
+                    "usuario",
+                    usuarioFormulario
+            );
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+
             return "redirect:/usuarios/editar/" + id;
         }
     }
@@ -162,7 +206,7 @@ public class UsuarioController {
                             : "Usuario desactivado correctamente."
             );
 
-        } catch (EntityNotFoundException e) {
+        } catch (IllegalArgumentException | EntityNotFoundException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
@@ -185,7 +229,7 @@ public class UsuarioController {
                     "Usuario eliminado correctamente."
             );
 
-        } catch (EntityNotFoundException e) {
+        } catch (IllegalArgumentException | EntityNotFoundException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 

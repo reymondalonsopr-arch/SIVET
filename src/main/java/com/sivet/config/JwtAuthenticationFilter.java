@@ -1,6 +1,6 @@
 package com.sivet.config;
 
-import com.sivet.service.JwtService;
+import com.sivet.security.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
