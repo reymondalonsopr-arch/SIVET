@@ -61,24 +61,46 @@
 
                     <div class="row g-3">
 
-                        <!-- Código del producto. -->
+                        <!-- Código automático del producto. -->
                         <div class="col-md-6">
 
                             <label for="codigo" class="form-label fw-semibold">
-                                Código *
+                                Código del producto
                             </label>
 
                             <input type="text"
                                    id="codigo"
-                                   th:field="*{codigo}"
                                    class="form-control"
-                                   placeholder="Ejemplo: PROD-001"
-                                   minlength="2"
+                                   th:value="${producto.codigo}"
+                                   placeholder="Seleccione una categoría"
                                    maxlength="30"
-                                   required>
+                                   readonly>
 
-                            <small class="text-muted">
-                                Código único para identificar el producto.
+                            <!-- Información para productos nuevos. -->
+                            <small class="text-muted"
+                                   th:if="${producto.id == null}">
+
+                                <i class="bi bi-magic me-1"></i>
+
+                                El código se generará automáticamente
+                                según la categoría seleccionada.
+
+                            </small>
+
+                            <!-- Información para productos existentes. -->
+                            <small class="text-muted"
+                                   th:if="${producto.id != null}">
+
+                                <i class="bi bi-lock me-1"></i>
+
+                                El código original no se puede modificar.
+
+                            </small>
+
+                            <!-- Estado de la vista previa. -->
+                            <small id="estadoCodigo"
+                                   class="d-block mt-1 text-primary"
+                                   th:if="${producto.id == null}">
                             </small>
 
                         </div>
@@ -111,13 +133,14 @@
                             <select id="categoria"
                                     th:field="*{categoria.id}"
                                     class="form-select"
+                                    th:attr="data-preview-url=@{/productos/codigo-preview}"
                                     required>
 
                                 <option value="">
                                     Seleccione una categoría
                                 </option>
 
-                                <!-- Mostramos las categorías enviadas por el controlador. -->
+                                <!-- Mostramos las categorías activas. -->
                                 <option th:each="categoria : ${categorias}"
                                         th:value="${categoria.id}"
                                         th:text="${categoria.nombre}">
@@ -239,6 +262,176 @@
 
     <!-- Scripts compartidos de SIVET. -->
     <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <!-- Generación automática de la vista previa del código. -->
+    <script th:inline="javascript">
+
+        // Inicializamos la vista previa del código.
+        function iniciarVistaPreviaCodigo() {
+
+            // Recuperamos los elementos del formulario.
+            const categoriaSelect = document.getElementById('categoria');
+            const campoCodigo = document.getElementById('codigo');
+            const estadoCodigo = document.getElementById('estadoCodigo');
+
+            // Si no existen los elementos, terminamos.
+            if (!categoriaSelect || !campoCodigo) {
+                return;
+            }
+
+            // Si el campo no tiene un elemento de estado, estamos editando.
+            if (!estadoCodigo) {
+                return;
+            }
+
+            // Recuperamos la dirección del servicio.
+            const urlBase = categoriaSelect.dataset.previewUrl;
+
+            // Comprobamos que la dirección exista.
+            if (!urlBase) {
+
+                console.error('No se encontró la dirección del servicio de códigos.');
+
+                estadoCodigo.textContent =
+                    'No se pudo configurar la generación del código.';
+
+                return;
+            }
+
+            // Controlamos las solicitudes realizadas.
+            let solicitudActual = 0;
+
+            // Consultamos el código correspondiente a la categoría.
+            async function actualizarVistaPrevia() {
+
+                const categoriaId = categoriaSelect.value;
+
+                // Si no hay categoría, limpiamos el campo.
+                if (!categoriaId) {
+
+                    solicitudActual++;
+
+                    campoCodigo.value = '';
+
+                    estadoCodigo.textContent =
+                        'Seleccione una categoría para generar el código.';
+
+                    return;
+                }
+
+                // Identificador de la solicitud actual.
+                const numeroSolicitud = ++solicitudActual;
+
+                // Informamos que estamos generando el código.
+                campoCodigo.value = 'Generando código...';
+
+                estadoCodigo.textContent =
+                    'Consultando código disponible...';
+
+                try {
+
+                    // Construimos la dirección de consulta.
+                    const url = urlBase +
+                        '?categoriaId=' +
+                        encodeURIComponent(categoriaId);
+
+                    // Consultamos el backend de SIVET.
+                    const respuesta = await fetch(url, {
+
+                        method: 'GET',
+
+                        credentials: 'same-origin',
+
+                        cache: 'no-store',
+
+                        headers: {
+                            'Accept': 'text/plain'
+                        }
+
+                    });
+
+                    // Comprobamos si la respuesta fue correcta.
+                    if (!respuesta.ok) {
+
+                        const mensaje = await respuesta.text();
+
+                        throw new Error(
+                            mensaje || 'Error al consultar el código.'
+                        );
+                    }
+
+                    // Recuperamos el código generado.
+                    const codigo = (await respuesta.text()).trim();
+
+                    // Evitamos mostrar respuestas anteriores.
+                    if (numeroSolicitud !== solicitudActual) {
+                        return;
+                    }
+
+                    // Comprobamos que el servidor haya devuelto un código.
+                    if (!codigo) {
+                        throw new Error(
+                            'El servidor devolvió un código vacío.'
+                        );
+                    }
+
+                    // Mostramos la vista previa.
+                    campoCodigo.value = codigo;
+
+                    estadoCodigo.textContent =
+                        'Vista previa generada correctamente.';
+
+                    console.log(
+                        'Código de producto generado:',
+                        codigo
+                    );
+
+                } catch (error) {
+
+                    // Ignoramos errores de solicitudes anteriores.
+                    if (numeroSolicitud !== solicitudActual) {
+                        return;
+                    }
+
+                    // Limpiamos el campo.
+                    campoCodigo.value = '';
+
+                    // Mostramos el error en el formulario.
+                    estadoCodigo.textContent =
+                        'Error: ' + error.message;
+
+                    console.error(
+                        'Error al generar código del producto:',
+                        error
+                    );
+                }
+            }
+
+            // Actualizamos la vista previa al cambiar la categoría.
+            categoriaSelect.addEventListener(
+                'change',
+                actualizarVistaPrevia
+            );
+
+            // Generamos el código al abrir el formulario.
+            actualizarVistaPrevia();
+        }
+
+        // Ejecutamos la inicialización incluso si el DOM ya está cargado.
+        if (document.readyState === 'loading') {
+
+            document.addEventListener(
+                'DOMContentLoaded',
+                iniciarVistaPreviaCodigo
+            );
+
+        } else {
+
+            iniciarVistaPreviaCodigo();
+
+        }
+
+    </script>
 
 </body>
 </html>

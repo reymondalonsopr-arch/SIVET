@@ -8,6 +8,7 @@ import com.sivet.service.ProductoService;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 /**
  * Controlador encargado de gestionar las operaciones web
  * relacionadas con los productos de SIVET.
+ *
+ * Funcionalidades:
+ * - Listar productos.
+ * - Buscar productos por código.
+ * - Mostrar vista previa del código automático.
+ * - Registrar productos.
+ * - Editar productos.
+ * - Activar y desactivar productos.
+ * - Eliminar productos.
+ * - Consultar productos con stock bajo.
  */
 @Controller
 @RequestMapping("/productos")
@@ -30,7 +41,10 @@ public class ProductoController {
     // Servicio encargado de recuperar mensajes personalizados.
     private final MensajeService mensajeService;
 
-    // Inyección de dependencias mediante constructor.
+    // =========================================================
+    // CONSTRUCTOR E INYECCIÓN DE DEPENDENCIAS
+    // =========================================================
+
     public ProductoController(
             ProductoService productoService,
             CategoriaService categoriaService,
@@ -41,30 +55,113 @@ public class ProductoController {
         this.mensajeService = mensajeService;
     }
 
-    // Muestra el listado de productos.
-    @GetMapping
-    public String listar(Model model) {
+    // =========================================================
+    // LISTADO Y BÚSQUEDA DE PRODUCTOS
+    // =========================================================
 
-        // Enviamos todos los productos a la vista.
-        model.addAttribute("productos", productoService.listarTodos());
+    /**
+     * Muestra todos los productos o filtra por código.
+     */
+    @GetMapping
+    public String listar(
+            @RequestParam(required = false) String codigo,
+            Model model) {
+
+        // Si se ingresó un código, realizamos la búsqueda.
+        if (codigo != null && !codigo.isBlank()) {
+
+            model.addAttribute(
+                    "productos",
+                    productoService.buscarPorCodigoParcial(codigo.trim())
+            );
+
+        } else {
+
+            // Si no hay búsqueda, mostramos todos los productos.
+            model.addAttribute(
+                    "productos",
+                    productoService.listarTodos()
+            );
+        }
+
+        // Conservamos el texto ingresado en el buscador.
+        model.addAttribute("busquedaCodigo", codigo);
 
         return "productos/index";
     }
 
-    // Muestra el formulario para registrar un producto.
+    // =========================================================
+    // VISTA PREVIA DEL CÓDIGO AUTOMÁTICO
+    // =========================================================
+
+    /**
+     * Genera una vista previa del siguiente código disponible
+     * según la categoría seleccionada.
+     *
+     * Esta operación no registra ni reserva el código.
+     *
+     * URL:
+     * /productos/codigo-preview?categoriaId=1
+     */
+    @GetMapping("/codigo-preview")
+    @ResponseBody
+    public ResponseEntity<String> previsualizarCodigo(
+            @RequestParam Long categoriaId) {
+
+        try {
+
+            // Validamos que se haya recibido una categoría.
+            if (categoriaId == null || categoriaId <= 0) {
+
+                return ResponseEntity.badRequest()
+                        .body("Debe seleccionar una categoría válida.");
+            }
+
+            // Solicitamos al servicio la vista previa del código.
+            String codigo = productoService.previsualizarCodigo(categoriaId);
+
+            // Devolvemos el código como texto al navegador.
+            return ResponseEntity.ok(codigo);
+
+        } catch (EntityNotFoundException | IllegalArgumentException e) {
+
+            // La categoría no existe o no está disponible.
+            return ResponseEntity.badRequest()
+                    .body(e.getMessage());
+
+        } catch (Exception e) {
+
+            // Evitamos exponer detalles internos al navegador.
+            return ResponseEntity.internalServerError()
+                    .body("No fue posible generar la vista previa del código.");
+        }
+    }
+
+    // =========================================================
+    // REGISTRO DE PRODUCTOS
+    // =========================================================
+
+    /**
+     * Muestra el formulario para registrar un producto.
+     */
     @GetMapping("/nuevo")
     public String nuevo(Model model) {
 
         // Enviamos un producto vacío al formulario.
         model.addAttribute("producto", new Producto());
 
-        // Cargamos las categorías disponibles.
-        model.addAttribute("categorias", categoriaService.listarActivas());
+        // Cargamos las categorías activas.
+        model.addAttribute(
+                "categorias",
+                categoriaService.listarActivas()
+        );
 
         return "productos/formulario";
     }
 
-    // Guarda un producto nuevo.
+    /**
+     * Registra un nuevo producto.
+     */
     @PostMapping("/guardar")
     public String guardar(
             @ModelAttribute("producto") Producto producto,
@@ -72,10 +169,12 @@ public class ProductoController {
             RedirectAttributes redirectAttributes) {
 
         try {
+
             // Registramos el producto mediante el servicio.
+            // El código se genera automáticamente en el backend.
             productoService.registrar(producto);
 
-            // Recuperamos el mensaje desde messages.properties.
+            // Mostramos el mensaje de éxito.
             redirectAttributes.addFlashAttribute(
                     "mensajeExito",
                     mensajeService.obtenerMensaje("producto.registrado")
@@ -83,10 +182,15 @@ public class ProductoController {
 
             return "redirect:/productos";
 
-        } catch (IllegalArgumentException | EntityNotFoundException e) {
+        } catch (IllegalArgumentException
+                 | EntityNotFoundException
+                 | IllegalStateException e) {
 
             // Conservamos las categorías para volver al formulario.
-            model.addAttribute("categorias", categoriaService.listarActivas());
+            model.addAttribute(
+                    "categorias",
+                    categoriaService.listarActivas()
+            );
 
             // Mostramos el error encontrado.
             model.addAttribute("mensajeError", e.getMessage());
@@ -95,7 +199,13 @@ public class ProductoController {
         }
     }
 
-    // Muestra el formulario para editar un producto.
+    // =========================================================
+    // EDICIÓN DE PRODUCTOS
+    // =========================================================
+
+    /**
+     * Muestra el formulario para editar un producto.
+     */
     @GetMapping("/editar/{id}")
     public String editar(
             @PathVariable Long id,
@@ -103,17 +213,24 @@ public class ProductoController {
             RedirectAttributes redirectAttributes) {
 
         try {
+
             // Buscamos el producto seleccionado.
-            model.addAttribute("producto", productoService.buscarPorId(id));
+            model.addAttribute(
+                    "producto",
+                    productoService.buscarPorId(id)
+            );
 
             // Cargamos las categorías activas.
-            model.addAttribute("categorias", categoriaService.listarActivas());
+            model.addAttribute(
+                    "categorias",
+                    categoriaService.listarActivas()
+            );
 
             return "productos/formulario";
 
         } catch (EntityNotFoundException e) {
 
-            // Recuperamos el mensaje de error desde properties.
+            // Informamos que el producto no existe.
             redirectAttributes.addFlashAttribute(
                     "mensajeError",
                     mensajeService.obtenerMensaje("producto.no.encontrado")
@@ -123,7 +240,9 @@ public class ProductoController {
         }
     }
 
-    // Actualiza los datos de un producto.
+    /**
+     * Actualiza los datos comerciales de un producto.
+     */
     @PostMapping("/actualizar/{id}")
     public String actualizar(
             @PathVariable Long id,
@@ -132,10 +251,12 @@ public class ProductoController {
             RedirectAttributes redirectAttributes) {
 
         try {
+
             // Actualizamos el producto mediante el servicio.
+            // El código original se conserva.
             productoService.actualizar(id, producto);
 
-            // Recuperamos el mensaje desde messages.properties.
+            // Mostramos el mensaje de éxito.
             redirectAttributes.addFlashAttribute(
                     "mensajeExito",
                     mensajeService.obtenerMensaje("producto.actualizado")
@@ -148,17 +269,26 @@ public class ProductoController {
             // Conservamos el identificador del producto.
             producto.setId(id);
 
-            // Volvemos a cargar las categorías.
-            model.addAttribute("categorias", categoriaService.listarActivas());
+            // Volvemos a cargar las categorías activas.
+            model.addAttribute(
+                    "categorias",
+                    categoriaService.listarActivas()
+            );
 
-            // Mostramos el error en el formulario.
+            // Mostramos el error.
             model.addAttribute("mensajeError", e.getMessage());
 
             return "productos/formulario";
         }
     }
 
-    // Activa o desactiva un producto.
+    // =========================================================
+    // CAMBIO DE ESTADO
+    // =========================================================
+
+    /**
+     * Activa o desactiva un producto.
+     */
     @PostMapping("/cambiar-estado/{id}")
     public String cambiarEstado(
             @PathVariable Long id,
@@ -166,10 +296,11 @@ public class ProductoController {
             RedirectAttributes redirectAttributes) {
 
         try {
+
             // Cambiamos el estado del producto.
             productoService.cambiarEstado(id, estado);
 
-            // Recuperamos el mensaje desde properties.
+            // Mostramos el mensaje de éxito.
             redirectAttributes.addFlashAttribute(
                     "mensajeExito",
                     mensajeService.obtenerMensaje("producto.actualizado")
@@ -187,13 +318,20 @@ public class ProductoController {
         return "redirect:/productos";
     }
 
-    // Elimina un producto únicamente si no tiene stock ni historial.
+    // =========================================================
+    // ELIMINACIÓN DE PRODUCTOS
+    // =========================================================
+
+    /**
+     * Elimina un producto únicamente cuando es seguro hacerlo.
+     */
     @PostMapping("/eliminar/{id}")
     public String eliminar(
             @PathVariable Long id,
             RedirectAttributes redirectAttributes) {
 
         try {
+
             // Solicitamos al servicio la eliminación segura.
             productoService.eliminar(id);
 
@@ -215,12 +353,21 @@ public class ProductoController {
         return "redirect:/productos";
     }
 
-    // Muestra los productos que necesitan reposición.
+    // =========================================================
+    // PRODUCTOS CON STOCK BAJO
+    // =========================================================
+
+    /**
+     * Muestra los productos que necesitan reposición.
+     */
     @GetMapping("/stock-bajo")
     public String listarStockBajo(Model model) {
 
         // Consultamos los productos con stock bajo.
-        model.addAttribute("productos", productoService.listarStockBajo());
+        model.addAttribute(
+                "productos",
+                productoService.listarStockBajo()
+        );
 
         return "productos/stock-bajo";
     }

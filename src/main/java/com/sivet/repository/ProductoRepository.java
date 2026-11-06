@@ -23,6 +23,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     // Comprueba si ya existe un producto con ese código.
     boolean existsByCodigo(String codigo);
 
+    // Busca productos cuyo código contenga el texto ingresado.
+    List<Producto> findByCodigoContainingIgnoreCase(String codigo);
+
+    // Obtiene los códigos que comienzan con un prefijo determinado.
+    List<Producto> findByCodigoStartingWithIgnoreCase(String prefijo);
+
     // Obtiene solamente los productos activos.
     List<Producto> findByEstadoTrue();
 
