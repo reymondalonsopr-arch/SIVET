@@ -11,29 +11,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/**
- * Inicializa los datos esenciales de SIVET.
- *
- * Crea los tres roles del sistema y, cuando todavía
- * no existen usuarios, registra la cuenta administradora.
- */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    // Repositorios para guardar roles y usuarios.
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
-
-    // Componente para cifrar las contraseñas.
     private final PasswordEncoder passwordEncoder;
 
-    // Contraseña inicial obtenida de una variable de entorno.
     @Value("${SIVET_ADMIN_PASSWORD:}")
     private String adminPassword;
 
-    /**
-     * Inyección de dependencias mediante constructor.
-     */
     public DataInitializer(
             RolRepository rolRepository,
             UsuarioRepository usuarioRepository,
@@ -44,13 +31,10 @@ public class DataInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Método ejecutado automáticamente al iniciar Spring Boot.
-     */
     @Override
     public void run(String... args) {
 
-        // Creamos los tres roles necesarios para SIVET.
+        // Crear roles si todavía no existen.
         Rol rolAdmin = crearRolSiNoExiste(
                 "ADMIN",
                 "Administrador con acceso completo al sistema."
@@ -66,54 +50,74 @@ public class DataInitializer implements CommandLineRunner {
                 "Usuario encargado de productos, compras e inventario."
         );
 
-        // Si ya existen usuarios, no creamos otra cuenta administradora.
-        if (usuarioRepository.count() > 0) {
+        // La contraseña debe estar configurada.
+        if (adminPassword == null || adminPassword.isBlank()) {
+
+            if (usuarioRepository.findByNombreUsuario("admin").isEmpty()) {
+                throw new IllegalStateException(
+                        "Debes configurar SIVET_ADMIN_PASSWORD para crear el administrador."
+                );
+            }
+
+            System.out.println(
+                    "SIVET: administrador existente. No se modificó su contraseña."
+            );
             return;
         }
 
-        // Exigimos una contraseña configurada por el usuario.
-        if (adminPassword == null || adminPassword.isBlank()) {
-            throw new IllegalStateException(
-                    "Debes configurar la variable SIVET_ADMIN_PASSWORD."
+        // Buscar el administrador existente.
+        Usuario administrador = usuarioRepository
+                .findByNombreUsuario("admin")
+                .orElse(null);
+
+        if (administrador == null) {
+
+            // Crear administrador si no existe.
+            administrador = new Usuario();
+            administrador.setNombreCompleto(
+                    "Administrador del sistema"
+            );
+            administrador.setNombreUsuario("admin");
+
+            System.out.println(
+                    "SIVET: creando cuenta administradora."
+            );
+
+        } else {
+
+            System.out.println(
+                    "SIVET: administrador encontrado. Actualizando contraseña."
             );
         }
 
-        // Construimos la primera cuenta administradora.
-        Usuario administrador = new Usuario();
-        administrador.setNombreCompleto("Administrador del sistema");
-        administrador.setNombreUsuario("admin");
-
-        // Guardamos únicamente la contraseña cifrada.
+        // Actualizar contraseña utilizando BCrypt.
         administrador.setPassword(
                 passwordEncoder.encode(adminPassword)
         );
 
-        // Asignamos el rol administrador.
+        // Garantizar rol y estado activo del administrador.
         administrador.setRol(rolAdmin);
         administrador.setActivo(true);
 
-        // Guardamos la cuenta inicial en PostgreSQL.
+        // Guardar cambios en PostgreSQL.
         usuarioRepository.save(administrador);
 
         System.out.println(
-                "SIVET: cuenta inicial de administrador creada."
+                "SIVET: administrador configurado correctamente."
         );
     }
 
-    /**
-     * Busca un rol por su nombre y lo crea si no existe.
-     */
-    private Rol crearRolSiNoExiste(String nombre, String descripcion) {
+    private Rol crearRolSiNoExiste(
+            String nombre,
+            String descripcion) {
 
         return rolRepository.findByNombre(nombre)
                 .orElseGet(() -> {
 
-                    // Construimos el nuevo rol.
                     Rol nuevoRol = new Rol();
                     nuevoRol.setNombre(nombre);
                     nuevoRol.setDescripcion(descripcion);
 
-                    // Guardamos el rol en PostgreSQL.
                     return rolRepository.save(nuevoRol);
                 });
     }
