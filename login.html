@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión | SIVET</title>
+
+    <style>
+        /* =========================
+           Variables y estilos base
+           ========================= */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --navy: #071b49;
+            --text: #10234b;
+            --muted: #64748b;
+            --border: #dce5f2;
+            --surface: #ffffff;
+            --background: #f3f7ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: var(--background);
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        /* =========================
+           Distribución principal
+           ========================= */
+        .login-page {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(460px, 0.9fr);
+            min-height: 100vh;
+        }
+
+        /* =========================
+           Panel de marca
+           ========================= */
+        .brand-panel {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
+            padding: 54px clamp(32px, 6vw, 100px);
+            overflow: hidden;
+            color: white;
+            background:
+                radial-gradient(ellipse at 80% 15%, rgba(37, 99, 235, 0.7), transparent 38%),
+                radial-gradient(ellipse at 10% 90%, rgba(29, 78, 216, 0.5), transparent 45%),
+                linear-gradient(145deg, #061638, #0b2d70 65%, #09245a);
+        }
+
+        .brand-panel::before,
+        .brand-panel::after {
+            position: absolute;
+            content: "";
+            pointer-events: none;
+            border: 1px solid rgba(147, 197, 253, 0.14);
+            transform: rotate(-35deg);
+        }
+
+        .brand-panel::before {
+            top: -120px;
+            right: -100px;
+            width: 420px;
+            height: 260px;
+            border-radius: 40px;
+        }
+
+        .brand-panel::after {
+            bottom: 70px;
+            left: -180px;
+            width: 420px;
+            height: 220px;
+            border-radius: 40px;
+        }
+
+        .brand-header,
+        .brand-content,
+        .brand-footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .brand-logo {
+            display: grid;
+            place-items: center;
+            width: 66px;
+            height: 66px;
+            flex-shrink: 0;
+            color: white;
+            font-size: 38px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6, #0754e8);
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .brand-name {
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .brand-content {
+            max-width: 650px;
+            margin: 60px 0;
+        }
+
+        .brand-content h1 {
+            margin-bottom: 22px;
+            font-size: clamp(38px, 4vw, 60px);
+            font-weight: 800;
+            line-height: 1.12;
+            letter-spacing: -1.5px;
+        }
+
+        .brand-content h1 span {
+            color: #60a5fa;
+        }
+
+        .brand-content > p {
+            max-width: 550px;
+            color: #dbeafe;
+            font-size: 20px;
+            line-height: 1.7;
+        }
+
+        /* Ilustración decorativa de inventario */
+        .illustration {
+            width: 100%;
+            max-width: 570px;
+            margin-top: 36px;
+        }
+
+        .brand-footer {
+            padding-top: 22px;
+            color: #cbd5e1;
+            font-size: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .brand-footer strong {
+            color: white;
+        }
+
+        /* =========================
+           Panel del formulario
+           ========================= */
+        .form-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px clamp(24px, 5vw, 80px);
+            background:
+                radial-gradient(circle at 100% 0%, #e1ebff 0, transparent 38%),
+                linear-gradient(145deg, #f8faff, #edf3ff);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 490px;
+            padding: 48px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 28px;
+            box-shadow: 0 24px 80px rgba(15, 35, 75, 0.12);
+            animation: aparecer 0.5s ease-out;
+        }
+
+        @keyframes aparecer {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+
+        .card-brand .brand-logo {
+            width: 58px;
+            height: 58px;
+            font-size: 32px;
+            border-radius: 17px;
+        }
+
+        .card-brand .brand-name {
+            color: var(--navy);
+            font-size: 30px;
+        }
+
+        .welcome {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .welcome h2 {
+            margin-bottom: 10px;
+            font-size: clamp(25px, 2.5vw, 32px);
+            font-weight: 800;
+            letter-spacing: -0.8px;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           Campos del formulario
+           ========================= */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            top: 50%;
+            left: 16px;
+            width: 21px;
+            height: 21px;
+            color: #7c8eae;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 58px;
+            padding: 0 48px;
+            color: var(--text);
+            font-size: 15px;
+            background: #f8faff;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .password-control {
+            padding-right: 76px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 14px;
+            padding: 6px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transform: translateY(-50%);
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        .validation-message {
+            display: none;
+            margin-top: 8px;
+            color: #dc2626;
+            font-size: 12px;
+        }
+
+        .validation-message.visible {
+            display: block;
+        }
+
+        /* =========================
+           Mensajes de autenticación
+           ========================= */
+        .message {
+            margin-bottom: 22px;
+            padding: 14px 16px;
+            font-size: 13px;
+            line-height: 1.5;
+            border-radius: 12px;
+        }
+
+        .error {
+            color: #b91c1c;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+
+        .success {
+            color: #166534;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+
+        /* =========================
+           Botón de acceso
+           ========================= */
+        .submit-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            min-height: 58px;
+            margin-top: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #1554e8);
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-button:hover {
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .submit-button:active {
+            transform: translateY(0);
+        }
+
+        .submit-button:focus-visible,
+        .password-toggle:focus-visible {
+            outline: 3px solid #93c5fd;
+            outline-offset: 3px;
+        }
+
+        /* =========================
+           Pie y seguridad
+           ========================= */
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 28px;
+            padding-top: 22px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: center;
+            border-top: 1px solid #e8eef8;
+        }
+
+        .security-note svg {
+            flex-shrink: 0;
+            color: var(--primary);
+        }
+
+        /* =========================
+           Diseño adaptable
+           ========================= */
+        @media (max-width: 1050px) {
+            .login-page {
+                grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1fr);
+            }
+
+            .brand-panel {
+                padding: 40px;
+            }
+
+            .form-panel {
+                padding: 32px;
+            }
+
+            .login-card {
+                padding: 38px 32px;
+            }
+
+            .brand-content h1 {
+                font-size: 42px;
+            }
+
+            .brand-content > p {
+                font-size: 17px;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .login-page {
+                grid-template-columns: 1fr;
+            }
+
+            .brand-panel {
+                min-height: auto;
+                padding: 28px 24px;
+            }
+
+            .brand-header {
+                justify-content: center;
+            }
+
+            .brand-logo {
+                width: 52px;
+                height: 52px;
+                font-size: 30px;
+                border-radius: 16px;
+            }
+
+            .brand-name {
+                font-size: 32px;
+            }
+
+            .brand-content {
+                margin: 35px 0 10px;
+                text-align: center;
+            }
+
+            .brand-content h1 {
+                font-size: 34px;
+            }
+
+            .brand-content > p {
+                margin: 0 auto;
+                font-size: 16px;
+            }
+
+            .illustration {
+                display: none;
+            }
+
+            .brand-footer {
+                display: none;
+            }
+
+            .form-panel {
+                padding: 30px 20px 45px;
+            }
+
+            .login-card {
+                max-width: 480px;
+                padding: 36px 28px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .brand-panel {
+                padding: 24px 20px;
+            }
+
+            .brand-content h1 {
+                font-size: 29px;
+            }
+
+            .form-panel {
+                padding: 20px 14px 32px;
+            }
+
+            .login-card {
+                padding: 30px 22px;
+                border-radius: 22px;
+            }
+
+            .welcome h2 {
+                font-size: 25px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+        }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="login-page">
+
+        <!-- Panel izquierdo: identidad y presentación de SIVET -->
+        <section class="brand-panel">
+
+            <header class="brand-header">
+                <div class="brand-logo" aria-hidden="true">S</div>
+                <span class="brand-name">SIVET</span>
+            </header>
+
+            <div class="brand-content">
+                <h1>
+                    Gestiona tu negocio<br>
+                    con <span>claridad</span>
+                </h1>
+
+                <p>
+                    Ventas, inventario y control en un solo lugar.
+                </p>
+
+                <!-- Ilustración vectorial decorativa -->
+                <svg class="illustration"
+                     viewBox="0 0 560 380"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-hidden="true">
+
+                    <defs>
+                        <linearGradient id="warehouseGradient"
+                                        x1="160" y1="80"
+                                        x2="430" y2="330"
+                                        gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#60A5FA"/>
+                            <stop offset="1" stop-color="#1D4ED8"/>
+                        </linearGradient>
+
+                        <linearGradient id="boxGradient"
+                                        x1="200" y1="200"
+                                        x2="300" y2="350"
+                                        gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#BFDBFE"/>
+                            <stop offset="1" stop-color="#3B82F6"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Base de la ilustración -->
+                    <ellipse cx="285" cy="328" rx="230" ry="28"
+                             fill="#020E2B" opacity=".22"/>
+
+                    <!-- Panel de estadísticas -->
+                    <rect x="28" y="40" width="175" height="130" rx="18"
+                          fill="#1D4ED8" fill-opacity=".5"
+                          stroke="#93C5FD" stroke-width="2"/>
+
+                    <path d="M55 135H176" stroke="#BFDBFE"
+                          stroke-width="4" stroke-linecap="round"/>
+
+                    <rect x="66" y="105" width="20" height="30" rx="4"
+                          fill="#BFDBFE"/>
+                    <rect x="100" y="82" width="20" height="53" rx="4"
+                          fill="#93C5FD"/>
+                    <rect x="134" y="60" width="20" height="75" rx="4"
+                          fill="#60A5FA"/>
+
+                    <path d="M58 92L95 70L122 80L166 43"
+                          stroke="#DBEAFE" stroke-width="4"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <path d="M151 43H166V58"
+                          stroke="#DBEAFE" stroke-width="4"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <!-- Almacén -->
+                    <path d="M205 140L350 48L500 140V315H205V140Z"
+                          fill="url(#warehouseGradient)"
+                          stroke="#93C5FD" stroke-width="3"/>
+
+                    <path d="M180 145L350 32L520 145"
+                          stroke="#DBEAFE" stroke-width="14"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <path d="M235 158H470V315H235V158Z"
+                          fill="#0B2D70" stroke="#60A5FA"
+                          stroke-width="3"/>
+
+                    <!-- Estantes -->
+                    <path d="M250 220H455M250 265H455"
+                          stroke="#93C5FD" stroke-width="6"
+                          stroke-linecap="round"/>
+
+                    <!-- Cajas en estantes -->
+                    <rect x="270" y="175" width="48" height="40" rx="4"
+                          fill="#60A5FA"/>
+                    <rect x="330" y="175" width="48" height="40" rx="4"
+                          fill="#93C5FD"/>
+                    <rect x="390" y="175" width="48" height="40" rx="4"
+                          fill="#60A5FA"/>
+
+                    <rect x="270" y="230" width="48" height="32" rx="4"
+                          fill="#93C5FD"/>
+                    <rect x="330" y="230" width="48" height="32" rx="4"
+                          fill="#60A5FA"/>
+                    <rect x="390" y="230" width="48" height="32" rx="4"
+                          fill="#93C5FD"/>
+
+                    <!-- Cajas de inventario al frente -->
+                    <path d="M70 230L145 190L220 230V310L145 350L70 310V230Z"
+                          fill="url(#boxGradient)"
+                          stroke="#DBEAFE" stroke-width="2"/>
+
+                    <path d="M70 230L145 270L220 230"
+                          stroke="#DBEAFE" stroke-width="2"/>
+                    <path d="M145 270V350"
+                          stroke="#DBEAFE" stroke-width="2"/>
+                    <path d="M130 205L160 220V245L130 230V205Z"
+                          fill="#DBEAFE" opacity=".8"/>
+
+                    <path d="M170 270L235 235L300 270V335L235 370L170 335V270Z"
+                          fill="#3B82F6" stroke="#BFDBFE" stroke-width="2"/>
+
+                    <path d="M170 270L235 305L300 270"
+                          stroke="#BFDBFE" stroke-width="2"/>
+                    <path d="M235 305V370"
+                          stroke="#BFDBFE" stroke-width="2"/>
+
+                    <path d="M220 245L250 260V283L220 268V245Z"
+                          fill="#DBEAFE" opacity=".8"/>
+
+                    <!-- Lista de control -->
+                    <rect x="18" y="185" width="135" height="105" rx="15"
+                          fill="#1D4ED8" fill-opacity=".65"
+                          stroke="#93C5FD" stroke-width="2"/>
+
+                    <rect x="35" y="205" width="20" height="20" rx="5"
+                          fill="#DBEAFE"/>
+                    <path d="M40 215L45 220L52 210"
+                          stroke="#1D4ED8" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <path d="M68 215H130"
+                          stroke="#DBEAFE" stroke-width="5"
+                          stroke-linecap="round"/>
+
+                    <rect x="35" y="245" width="20" height="20" rx="5"
+                          fill="#DBEAFE"/>
+                    <path d="M40 255L45 260L52 250"
+                          stroke="#1D4ED8" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+
+                    <path d="M68 255H120"
+                          stroke="#DBEAFE" stroke-width="5"
+                          stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <footer class="brand-footer">
+                <strong>SIVET</strong> · Sistema de Ventas e Inventario
+            </footer>
+
+        </section>
+
+        <!-- Panel derecho: formulario de autenticación -->
+        <section class="form-panel">
+
+            <div class="login-card">
+
+                <header class="card-brand">
+                    <div class="brand-logo" aria-hidden="true">S</div>
+                    <span class="brand-name">SIVET</span>
+                </header>
+
+                <div class="welcome">
+                    <h2>Bienvenido de nuevo</h2>
+                    <p>Ingresa tus credenciales para continuar.</p>
+                </div>
+
+                <!-- Mensaje de error de Spring Security -->
+                
+
+                <!-- Mensaje después de cerrar sesión -->
+                
+
+                <!-- Formulario compatible con Spring Security -->
+                

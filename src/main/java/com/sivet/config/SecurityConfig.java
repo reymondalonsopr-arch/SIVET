@@ -1,7 +1,7 @@
 
 package com.sivet.config;
 
-import com.sivet.service.JwtService;
+import com.sivet.security.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -183,3 +183,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+

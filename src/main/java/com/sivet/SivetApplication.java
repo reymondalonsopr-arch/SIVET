@@ -6,8 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SivetApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SivetApplication.class, args);
-	}
+    public static void main(String[] args) {
 
+        SpringApplication.run(SivetApplication.class, args);
+
+    }
 }

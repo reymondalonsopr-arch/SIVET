@@ -5,7 +5,6 @@ import com.sivet.model.Producto;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,6 +22,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     // Comprueba si ya existe un producto con ese código.
     boolean existsByCodigo(String codigo);
+
+    // Busca productos cuyo código contenga el texto ingresado.
+    List<Producto> findByCodigoContainingIgnoreCase(String codigo);
+
+    // Obtiene los códigos que comienzan con un prefijo determinado.
+    List<Producto> findByCodigoStartingWithIgnoreCase(String prefijo);
 
     // Obtiene solamente los productos activos.
     List<Producto> findByEstadoTrue();
