@@ -40,3 +40,7 @@ Postman/token.txt
 
 # Archivos generados
 target/
+
+# Archivos de logs
+logs/
+*.log
